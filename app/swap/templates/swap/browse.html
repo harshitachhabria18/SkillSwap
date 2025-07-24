@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center my-5">
+    <h1 class="display-4">Welcome to SkillSwap!</h1>
+    <p class="lead">A platform to exchange skills, learn together, and grow.</p>
+    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg mt-4">Join Now</a>
+</div>
+{% endblock %}

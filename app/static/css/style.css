@@ -1,0 +1,67 @@
+/* Color Palette:
+   #1B3C53 - Deep Blue (Navbar)
+   #456882 - Medium Blue (Buttons, Hover)
+   #D2C1B6 - Beige Gray (Accent)
+   #F9F3EF - Light Cream (Background)
+*/
+
+body {
+    background-color: #F9F3EF;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #1B3C53;
+}
+
+.custom-navbar {
+    background-color: #1B3C53;
+}
+
+.navbar-brand, .nav-link {
+    color: #F9F3EF !important;
+    font-weight: 500;
+}
+
+.nav-link:hover {
+    color: #D2C1B6 !important;
+}
+
+h1, h2, h3 {
+    color: #1B3C53;
+}
+
+.btn-primary {
+    background-color: #456882;
+    border-color: #456882;
+}
+
+.btn-primary:hover {
+    background-color: #1B3C53;
+    border-color: #1B3C53;
+}
+
+.btn-success {
+    background-color: #456882;
+    border-color: #456882;
+}
+
+.btn-success:hover {
+    background-color: #1B3C53;
+    border-color: #1B3C53;
+}
+
+.alert-success {
+    background-color: #D2C1B6;
+    color: #1B3C53;
+    border: none;
+}
+
+.alert-danger {
+    background-color: #ffcccc;
+    color: #1B3C53;
+    border: none;
+}
+
+.form-control {
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #ccc;
+}
