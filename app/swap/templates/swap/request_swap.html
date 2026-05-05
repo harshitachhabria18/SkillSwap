@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card shadow-sm p-4" style="max-width: 600px; margin: auto;">
+
+        <h3 class="mb-4 text-center">Send Swap Request to {{ receiver.name }}</h3>
+
+        <!-- Receiver Info -->
+        <div class="d-flex align-items-center mb-4">
+            <img src="{% if receiver.profile_photo %}{{ url_for('static', filename='images/' + receiver.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
+                 alt="Profile Photo"
+                 class="rounded-circle me-3"
+                 width="60" height="60">
+            <div>
+                <h5 class="mb-0">{{ receiver.name }}</h5>
+                <small class="text-muted">{{ receiver.location or 'Location not set' }}</small>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Swap Request Form -->
+        <form method="POST" action="{{ url_for('swap.request_swap', user_id=receiver.id) }}">
+
+            <!-- My offered skills dropdown -->
+            <div class="mb-3">
+                <label class="form-label"><strong>Choose one of your offered skills</strong></label>
+                <select class="form-select" name="offered_skill_id" required>
+                    <option value="">-- Select your skill --</option>
+                    {% for us in my_offered %}
+                    <option value="{{ us.skills_id }}">{{ us.skill.name }}</option>
+                    {% else %}
+                    <option disabled>No skills offered in your profile</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Their wanted skills dropdown -->
+            <div class="mb-3">
+                <label class="form-label"><strong>Choose one of their wanted skills</strong></label>
+                <select class="form-select" name="wanted_skill_id" required>
+                    <option value="">-- Select their skill --</option>
+                    {% for us in their_wanted %}
+                    <option value="{{ us.skills_id }}">{{ us.skill.name }}</option>
+                    {% else %}
+                    <option disabled>This user has no skills wanted listed</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Message -->
+            <div class="mb-4">
+                <label class="form-label"><strong>Message (optional)</strong></label>
+                <textarea class="form-control" name="message" rows="4"
+                          placeholder="Introduce yourself or explain why you'd like to swap..."></textarea>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('swap.view_profile', user_id=receiver.id) }}"
+                   class="btn btn-outline-secondary">Cancel</a>
+                <button type="submit" class="btn btn-success">Submit Request</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+{% endblock %}

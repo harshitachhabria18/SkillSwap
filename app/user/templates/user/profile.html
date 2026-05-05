@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">Edit Your Profile</h2>
+    
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('user.home') }}">
+        {{ form.hidden_tag() }}
+
+        <!-- so first it shows no profile photo uploaded, then when user uploads the photo and the form is submitted, then it stores the profile_photo in the User table and then displays the profile photo. -->
+        <!-- Profile Photo Section -->
+        <div class="d-flex flex-column align-items-center mb-4">
+            <!-- this condition is checked after the profile_photo is stored in the database -->
+            {% if current_user.profile_photo %}
+                <div style="position: relative; display: inline-block;">
+                    <img id="profilePreview" src="{{ url_for('static', filename='images/' + current_user.profile_photo) }}"
+                        alt="Profile Photo"
+                        style="width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 2px solid #ccc;">
+                </div>
+            {% else %}
+                <p id="noPhotoText">No Profile uploaded</p>
+                <img id="profilePreview"
+                    src=""
+                    alt="Profile Photo"
+                    style="display: none; width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 2px solid #ccc;">
+            {% endif %}
+
+            <!-- Edit and Remove Buttons -->
+            <div class="mt-2">
+                <label class="btn btn-outline-success mt-3">
+                    {{ form.photo.label }}
+                    {{ form.photo(style="display: none;") }}
+                </label>
+                {% if current_user.profile_photo %}
+                    <button type="submit" name="remove_photo" value="1" class="btn btn-outline-danger mt-3">
+                        Remove
+                </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Form Fields -->
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+
+                <!-- Name -->
+                <div class="mb-3">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+                </div>
+
+                <!-- Location -->
+                <div class="mb-3">
+                    {{ form.location.label(class="form-label") }}
+                    {{ form.location(class="form-control") }}
+                </div>
+
+                <!-- Skills Offered -->
+                <div class="mb-3">
+                    {{ form.skills_offered.label(class="form-label") }}
+                    <div class="d-flex gap-2">
+                        {{ form.skills_offered(class="form-select", id="skillsOfferedDropdown") }}
+                        <button type="button" class="btn btn-outline-success" onclick="addSkill('offered')">Add</button>
+                    </div>
+                    <!-- div for showing selected skills(tags) -->
+                    <div id="skillsOfferedTags" class="mt-2 d-flex flex-wrap gap-2">
+                        {% for skill in selected_skills_offered %}
+                            <span class="badge bg-primary rounded-pill p-2 d-flex align-items-center">
+                                {{ skill.name }}
+                                <span onclick="this.parentElement.remove(); removeSkill('offered', '{{ skill.id }}')" style="cursor:pointer;"> ✕</span>
+                            </span>
+                        {% endfor %}
+                    </div>
+                    <!-- input for sending id of skills like value="2,5,7" used in JS -->
+                    <input type="hidden" name="skills_offered_list" id="skillsOfferedInput">
+                </div>
+
+                <!-- Skills Wanted -->
+                <div class="mb-3">
+                    {{ form.skills_wanted.label(class="form-label") }}
+                    <div class="d-flex gap-2">
+                        {{ form.skills_wanted(class="form-select", id="skillsWantedDropdown") }}
+                        <button type="button" class="btn btn-outline-success" onclick="addSkill('wanted')">Add</button>
+                    </div>
+                    <!-- div for showing selected skills(tags) -->
+                    <div id="skillsWantedTags" class="mt-2 d-flex flex-wrap gap-2">
+                        {% for skill in selected_skills_wanted %}
+                            <span class="badge bg-primary rounded-pill p-2 d-flex align-items-center">
+                                {{ skill.name }}
+                                <span onclick="this.parentElement.remove(); removeSkill('wanted', '{{ skill.id }}')" style="cursor:pointer;"> ✕</span>
+                            </span>
+                        {% endfor %}
+                    </div>
+
+                    <!-- input for sending id of skills like value="2,5,7" used in JS -->
+                    <input type="hidden" name="skills_wanted_list" id="skillsWantedInput">
+                </div>
+
+                <!-- Availability -->
+                <div class="mb-3">
+                    {{ form.availability.label(class="form-label") }}
+                    {{ form.availability(class="form-select") }}
+                </div>
+
+                <!-- Session Duration -->
+                <div class="mb-3">
+                    {{ form.session_duration.label(class="form-label") }}
+                    {{ form.session_duration(class="form-select") }}
+                </div>
+
+                <!-- Profile Type -->
+                <div class="mb-3">
+                    {{ form.profile_type.label(class="form-label") }}
+                    {{ form.profile_type(class="form-select") }}
+                </div>
+
+                <!-- Save and Discard Buttons -->
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">{{ form.submit.label.text }}</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+
+// the type has type=offered or type=wanted
+function addSkill(type) {
+    // accessing the dropdown from the form by its id that is skillsOfferedDropdown or skillsWantedDropdown
+    const dropdown = document.getElementById(`skills${capitalize(type)}Dropdown`);
+    // Gets the option the user selected from that dropdown (like "Python")
+    // <option value="2">Web Development</option>
+    // The above option is stored in selectedOption if the selectedIndex is of Web Development from list of options
+    const selectedOption = dropdown.options[dropdown.selectedIndex];
+    // gets the div tag where its id is skillsOfferedTags or skillsWantedTags
+    const tagContainer = document.getElementById(`skills${capitalize(type)}Tags`);
+    // Gets the hidden <input> field where we’re storing the selected skill IDs as a comma-separated string (like "2,5,7")
+    const hiddenInput = document.getElementById(`skills${capitalize(type)}Input`);
+
+    // doubt
+    // Prevent duplicates
+    if (hiddenInput.value.split(',').includes(selectedOption.value)) return;
+
+    // create a tag for a specific skill shown in the tagContainer after clicking Add button
+    const tag = document.createElement("span");
+    tag.className = "badge bg-primary rounded-pill p-2 d-flex align-items-center";
+    // adding the textcontent that is present in the option element in selectedOption
+    tag.textContent = selectedOption.text;
+
+    // stores the value in selected option like 2 which is id for Python - example 
+    const skillId = selectedOption.value;
+
+    // creating a remove button
+    const removeBtn = document.createElement("span");
+    removeBtn.textContent = " ✕";
+    removeBtn.style.cursor = "pointer";
+    // function to remove the skills (tags) added
+    removeBtn.onclick = function () {
+        tag.remove();
+
+//hiddenInput.value might look like:
+// "2,5,7" (IDs of selected skills)
+
+// split(',') turns it into an array:
+// ['2', '5', '7']
+
+// .filter(id => id !== selectedOption.value)
+// Filters out the skill that the user just clicked to remove
+
+// Suppose selectedOption.value = '5', the line becomes:
+// ['2', '5', '7'].filter(id => id !== '5')  // → ['2', '7']
+
+// ids = ['2', '7']
+// here the skillId does not removes based on the last value stored in skillId but it removes the skillId from hidden input based on the remove button automatically
+        let ids = hiddenInput.value.split(',').filter(id => id !== skillId);
+        // "2,7" join back 
+        hiddenInput.value = ids.join(',');
+    };
+
+    // add remove button in individual tag div containers 
+    tag.appendChild(removeBtn);
+    // add tags in the whole tag containers
+    tagContainer.appendChild(tag);
+
+    // doubt
+    // It appends the selected skill ID to the hidden input’s value, adding a comma only if the value is not empty.
+    hiddenInput.value += (hiddenInput.value ? ',' : '') + skillId;
+}
+
+function capitalize(s) {
+    return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// remove a skill of specific skillId from hidden inputs 
+function removeSkill(type, skillId) {
+    const hiddenInput = document.getElementById(`skills${capitalize(type)}Input`);
+    // id.trim removes accidental whitespace
+    // To remove the selected skillId from the list of skills stored in the hidden input, so the backend knows the user no longer wants that skill.
+    let ids = hiddenInput.value.split(',').filter(id => id.trim() !== skillId.toString());
+    hiddenInput.value = ids.join(',');
+}
+
+// Pre-fill inputs on page load
+// when the page loads, it loads the value of hidden inputs in javascript
+document.getElementById("skillsOfferedInput").value = "{{ selected_skills_offered|map(attribute='id')|join(',') }}";
+document.getElementById("skillsWantedInput").value = "{{ selected_skills_wanted|map(attribute='id')|join(',') }}";
+
+//  This waits for the full HTML document to load before running the script.
+document.addEventListener("DOMContentLoaded", function () {
+
+    // It accesses the file input element where the user selects a photo to upload
+    const photoInput = document.querySelector('input[name="photo"]');
+    // It access the image tag through which the image is shown (uploaded by user)
+    const previewImg = document.getElementById("profilePreview");
+    // It access the paragraph tag where having No Profile Photo section
+    const noPhotoText = document.getElementById("noPhotoText");
+
+    // on change of the uploaded or input photo, run this function
+    photoInput.addEventListener("change", function (event) {
+        // event.target → refers to the file input element:
+        // <input type="file" name="photo">
+        // event.target.files → is a FileList object containing all the files the user selected (even if just one).
+        // [0] → accesses the first file in that list (most forms only allow 1 file to be selected, so it's usually just one).
+        const file = event.target.files[0];
+        // if the file exists
+        if (file) {
+            // It creates a temporary local URL for the uploaded file (an image in this case)
+            const imageURL = URL.createObjectURL(file);
+            // the image source becomes the temporary url which is uploaded photo
+            previewImg.src = imageURL;
+            // display the photo in the img tag
+            previewImg.style.display = "block";
+
+            // remove the No profile photo uploaded section
+            if (noPhotoText) {
+                noPhotoText.style.display = "none";
+            }
+        }
+    });
+});
+
+</script>
+
+{% endblock %}

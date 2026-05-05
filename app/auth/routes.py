@@ -1,4 +1,3 @@
-@auth_bp.route('/register', method
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, login_required
@@ -26,7 +25,6 @@ def register():
             return redirect(url_for('auth.register'))
 
         # create new user
-        
         # create a hashed password for security
         hashed_password = generate_password_hash(form.password.data)
 
@@ -47,7 +45,7 @@ def register():
         return redirect(url_for('auth.login'))
     
     # return the register.html page
-    return render_template('auth/register.html', form=form)
+    return render_template('register.html', form=form)
 
 # route for login page
 @auth_bp.route("/login", methods=["GET","POST"])
@@ -60,20 +58,25 @@ def login():
         # filtering the email in the database entered by the user
         user = User.query.filter_by(email=form.email.data).first()
 
-        # checks if the user exits and also if the password in the User table is equal to the password entered by user
-        if user and check_password_hash(user.password, form.password.data):
-            login_user(user)
-            flash(message='Logged in successfully!', category='success')
+        # Check email first
+        if not user:
+            flash(message='No account found with that email.', category='danger')
+            return render_template('login.html', form=form)
 
-            return redirect(url_for('swap.browse')) # or dashboard page based on the requirement
-        
-        else:
-            flash(message='Invalid email or password.', category='danger')
+         # Then check password
+        if not check_password_hash(user.password, form.password.data):
+            flash(message='Incorrect password.', category='danger')
+            return render_template('login.html', form=form)
 
-    return render_template('auth/login.html', form=form)
+        # Both correct — log in and go to Home page
+        login_user(user)
+        flash(message='Logged in successfully!', category='success')
+        return redirect(url_for('swap.home'))  # ← goes to Screen 1
+
+
+    return render_template('login.html', form=form)
 
 # route for logout
-
 @auth_bp.route('/logout')
 @login_required
 def logout():

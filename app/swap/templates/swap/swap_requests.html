@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4 text-center">Swap Requests</h2>
+
+    <!-- Status Filter -->
+    <form method="GET" action="{{ url_for('swap.swap_requests') }}" class="mb-4">
+        <div class="filter-select-wrap">
+            <select class="form-select w-auto" name="status" onchange="this.form.submit()">
+                <option value="">All Status</option>
+                <option value="Pending"   {% if selected_status == 'Pending'   %}selected{% endif %}>Pending</option>
+                <option value="Accepted"  {% if selected_status == 'Accepted'  %}selected{% endif %}>Accepted</option>
+                <option value="Rejected"  {% if selected_status == 'Rejected'  %}selected{% endif %}>Rejected</option>
+                <option value="Completed" {% if selected_status == 'Completed' %}selected{% endif %}>Completed</option>
+            </select>
+        </div>
+    </form>
+
+    <!-- Received Requests -->
+    <h4 class="mb-3">Received Requests</h4>
+    <div class="list-group mb-5">
+        {% for req in received %}
+        <div class="list-group-item py-4">
+            <div class="d-flex justify-content-between align-items-center">
+
+                <!-- Sender Info -->
+                <div class="d-flex align-items-center">
+                    <img src="{% if req.sender.profile_photo %}{{ url_for('static', filename='images/' + req.sender.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
+                         alt="Profile Photo"
+                         class="rounded-circle me-3"
+                         width="60" height="60">
+                    <div>
+                        <h5 class="mb-1">{{ req.sender.name }}</h5>
+                        <p class="mb-1">
+                            <strong>Skills Offered:</strong>
+                            <span class="badge bg-primary">{{ req.offered_skill.name }}</span>
+                        </p>
+                        <p class="mb-1">
+                            <strong>Skills Wanted:</strong>
+                            <span class="badge bg-secondary">{{ req.wanted_skill.name }}</span>
+                        </p>
+                        {% if req.message %}
+                        <p class="mb-1 text-muted"><em>"{{ req.message }}"</em></p>
+                        {% endif %}
+                        <small class="text-muted">{{ req.timestamp.strftime('%d %b %Y') }}</small>
+                    </div>
+                </div>
+
+                <!-- Status & Actions -->
+                <div class="text-end">
+                    {% if req.status == 'Pending' %}
+                        <span class="badge bg-warning text-dark mb-2 d-block">Pending</span>
+                        <form method="POST" action="{{ url_for('swap.accept_request', request_id=req.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-success btn-sm">Accept</button>
+                        </form>
+                        <form method="POST" action="{{ url_for('swap.reject_request', request_id=req.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
+                        </form>
+                    {% elif req.status == 'Accepted' %}
+                        <span class="badge bg-success mb-2 d-block">Accepted</span>
+                        <form method="POST" action="{{ url_for('swap.complete_request', request_id=req.id) }}">
+                            <button type="submit" class="btn btn-primary btn-sm">Mark as Complete</button>
+                        </form>
+                    {% elif req.status == 'Rejected' %}
+                        <span class="badge bg-danger mb-2 d-block">Rejected</span>
+                    {% elif req.status == 'Completed' %}
+                        <span class="badge bg-secondary mb-2 d-block">Completed</span>
+                        {% set already_reviewed = namespace(found=false) %}
+                        {% for fb in req.feedbacks %}
+                            {% if fb.reviewer_id == current_user.id %}
+                                {% set already_reviewed.found = true %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if not already_reviewed.found %}
+                            <a href="{{ url_for('swap.leave_feedback', request_id=req.id) }}" class="btn btn-warning btn-sm mt-1">Leave Feedback</a>
+                        {% else %}
+                            <span class="text-muted small">Feedback given ✓</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="list-group-item text-center text-muted">
+            No received requests found.
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Received Pagination -->
+    <nav class="mb-5">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not received_pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('swap.swap_requests', page=received_pagination.prev_num, status=selected_status) }}">«</a>
+            </li>
+            {% for p in received_pagination.iter_pages() %}
+                <li class="page-item {% if p == received_pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('swap.swap_requests', page=p, status=selected_status) }}">{{ p }}</a>
+                </li>
+            {% endfor %}
+            <li class="page-item {% if not received_pagination.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('swap.swap_requests', page=received_pagination.next_num, status=selected_status) }}">»</a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Sent Requests -->
+    <h4 class="mb-3">Sent Requests</h4>
+    <div class="list-group mb-4">
+        {% for req in sent %}
+        <div class="list-group-item py-4">
+            <div class="d-flex justify-content-between align-items-center">
+
+                <!-- Receiver Info -->
+                <div class="d-flex align-items-center">
+                    <img src="{% if req.receiver.profile_photo %}{{ url_for('static', filename='images/' + req.receiver.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
+                         alt="Profile Photo"
+                         class="rounded-circle me-3"
+                         width="60" height="60">
+                    <div>
+                        <h5 class="mb-1">{{ req.receiver.name }}</h5>
+                        <p class="mb-1">
+                            <strong>Skills Offered:</strong>
+                            <span class="badge bg-primary">{{ req.offered_skill.name }}</span>
+                        </p>
+                        <p class="mb-1">
+                            <strong>Skills Wanted:</strong>
+                            <span class="badge bg-secondary">{{ req.wanted_skill.name }}</span>
+                        </p>
+                        {% if req.message %}
+                        <p class="mb-1 text-muted"><em>"{{ req.message }}"</em></p>
+                        {% endif %}
+                        <small class="text-muted">{{ req.timestamp.strftime('%d %b %Y') }}</small>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="text-end">
+                    {% if req.status == 'Pending' %}
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    {% elif req.status == 'Accepted' %}
+                        <span class="badge bg-success">Accepted</span>
+                        <form method="POST" action="{{ url_for('swap.complete_request', request_id=req.id) }}" class="mt-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Mark as Complete</button>
+                        </form>
+                    {% elif req.status == 'Rejected' %}
+                        <span class="badge bg-danger">Rejected</span>
+                    {% elif req.status == 'Completed' %}
+                        <span class="badge bg-secondary mb-2 d-block">Completed</span>
+                        {% set already_reviewed = namespace(found=false) %}
+                        {% for fb in req.feedbacks %}
+                            {% if fb.reviewer_id == current_user.id %}
+                                {% set already_reviewed.found = true %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if not already_reviewed.found %}
+                            <a href="{{ url_for('swap.leave_feedback', request_id=req.id) }}" class="btn btn-warning btn-sm mt-1">Leave Feedback</a>
+                        {% else %}
+                            <span class="text-muted small">Feedback given ✓</span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="list-group-item text-center text-muted">
+            No sent requests found.
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sent Pagination -->
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not sent_pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('swap.swap_requests', page=sent_pagination.prev_num, status=selected_status) }}">«</a>
+            </li>
+            {% for p in sent_pagination.iter_pages() %}
+                <li class="page-item {% if p == sent_pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('swap.swap_requests', page=p, status=selected_status) }}">{{ p }}</a>
+                </li>
+            {% endfor %}
+            <li class="page-item {% if not sent_pagination.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('swap.swap_requests', page=sent_pagination.next_num, status=selected_status) }}">»</a>
+            </li>
+        </ul>
+    </nav>
+
+</div>
+{% endblock %}

@@ -1,9 +1,107 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container text-center my-5">
-    <h1 class="display-4">Welcome to SkillSwap!</h1>
-    <p class="lead">A platform to exchange skills, learn together, and grow.</p>
-    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg mt-4">Join Now</a>
+<div class="container my-5">
+    <!-- Welcome Section -->
+    <div class="text-center mb-5">
+        <h1 class="display-4">Welcome to SkillSwap!</h1>
+        <p class="lead">A platform to exchange skills, learn together, and grow.</p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg mt-4">Join Now</a>
+    </div>
+
+    <!-- Search and Filter -->
+    <form method="GET" action="{{ url_for('swap.home') }}" class="d-flex justify-content-between align-items-center mb-4">
+        <div class="filter-select-wrap">
+            <select class="form-select" name="availability" onchange="this.form.submit()">
+                <option value="">All Availability</option>
+                <option value="weekdays" {% if selected_availability == 'weekdays' %}selected{% endif %}>Weekdays</option>
+                <option value="weekends" {% if selected_availability == 'weekends' %}selected{% endif %}>Weekends</option>
+                <option value="evenings" {% if selected_availability == 'evenings' %}selected{% endif %}>Evenings</option>
+                <option value="flexible" {% if selected_availability == 'flexible' %}selected{% endif %}>Flexible</option>
+            </select>
+        </div>
+        <div class="input-group w-50">
+            <input type="text" class="form-control" name="search" placeholder="Search skills or users..." value="{{ search }}">
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
+        </div>
+    </form>
+
+    <!-- Profile Listings -->
+    <div class="list-group">
+        {% for item in user_data %}
+        <div class="list-group-item py-4 d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('swap.view_profile', user_id=item.user.id) }}">
+                    <img src="{% if item.user.profile_photo %}{{ url_for('static', filename='images/' + item.user.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
+                         alt="Profile Photo"
+                         class="rounded-circle me-3"
+                         width="80" height="80">
+                </a>
+                <div>
+                    <h5 class="mb-1">{{ item.user.name }}</h5>
+                    <p class="mb-1">
+                        <strong>Skills Offered:</strong>
+                        {% for skill in item.skills_offered %}
+                        <span class="badge bg-primary">{{ skill }}</span>
+                        {% endfor %}
+                    </p>
+                    <p class="mb-1">
+                        <strong>Skills Wanted:</strong>
+                        {% for skill in item.skills_wanted %}
+                        <span class="badge bg-secondary">{{ skill }}</span>
+                        {% endfor %}
+                    </p>
+                </div>
+            </div>
+            <div class="text-end">
+                <!-- Rating -->
+               {% if item.avg_rating %}
+                    <p class="mb-2">
+                        <span class="text-warning">
+                            {% for i in range(item.avg_rating | int) %}⭐{% endfor %}
+                        </span>
+                        <strong>{{ item.avg_rating }}/5</strong>
+                        <small class="text-muted">({{ item.review_count }} reviews)</small>
+                    </p>
+                {% else %}
+                    <p class="mb-2 text-muted small">No ratings yet</p>
+                {% endif %}
+
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('swap.view_profile', user_id=item.user.id) }}" class="btn btn-success">Request</a>
+                {% else %}
+                <button class="btn btn-success" onclick="showLoginPrompt()">Request</button>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <div class="list-group-item text-center">
+            <p>No users found.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('swap.home', page=pagination.prev_num, availability=selected_availability, search=search) }}">«</a>
+            </li>
+            {% for p in pagination.iter_pages() %}
+                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('swap.home', page=p, availability=selected_availability, search=search) }}">{{ p }}</a>
+                </li>
+            {% endfor %}
+            <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('swap.home', page=pagination.next_num, availability=selected_availability, search=search) }}">»</a>
+            </li>
+        </ul>
+    </nav>
 </div>
+
+<script>
+function showLoginPrompt() {
+    alert("You must be logged in to send a request. Please login or sign up.");
+}
+</script>
 {% endblock %}
