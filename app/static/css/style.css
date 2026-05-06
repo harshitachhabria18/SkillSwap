@@ -419,3 +419,120 @@ hr { border: none; border-top: 1.5px solid var(--warm-tan); margin: 1.5rem 0; }
 .list-group-item + .list-group-item {
   margin-top: 0;
 }
+
+/* Responsiveness */
+
+/* ── Tablet (max 768px) ── */
+@media (max-width: 768px) {
+
+    /* Navbar */
+    .navbar-brand { font-size: 1.3rem; }
+    .nav-link { padding: 0.4rem 0.6rem !important; font-size: 0.88rem; }
+
+    /* Hero */
+    .browse-hero { padding: 2rem 1rem 1.5rem; }
+    .browse-hero h1 { font-size: 1.8rem; }
+    .browse-hero .lead { font-size: 0.95rem; }
+
+    /* Filter form */
+    .filter-form { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+    .filter-select-wrap .form-select { width: 100%; }
+    .search-bar-wrapper { max-width: 100%; }
+
+    /* User cards */
+    .user-card { 
+        flex-direction: column; 
+        align-items: flex-start;
+        padding: 1rem 1.1rem;
+        gap: 1rem;
+    }
+    .user-card-actions { 
+        width: 100%; 
+        text-align: left !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .user-card-avatar { width: 60px; height: 60px; }
+
+    /* Profile view */
+    .profile-view-header { 
+        flex-direction: column; 
+        align-items: center;
+        text-align: center;
+    }
+    .profile-view-header .ms-auto { 
+        margin-left: 0 !important; 
+        width: 100%;
+        text-align: center;
+    }
+    .profile-view-avatar { width: 90px; height: 90px; }
+
+    /* Swap request cards */
+    .request-card { 
+        flex-direction: column; 
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    .request-actions { 
+        align-items: flex-start;
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    /* Form pages */
+    .form-page-card { padding: 1.5rem 1.1rem; }
+    .auth-card { padding: 2rem 1.4rem; }
+
+    /* Page banner */
+    .page-banner h2 { font-size: 1.5rem; }
+
+    /* Pagination */
+    .pagination { flex-wrap: wrap; justify-content: center; }
+}
+
+/* ── Mobile (max 480px) ── */
+@media (max-width: 480px) {
+
+    /* Base */
+    body { font-size: 0.9rem; }
+    main.container { padding-left: 0.75rem; padding-right: 0.75rem; }
+
+    /* Navbar */
+    .navbar-brand { font-size: 1.1rem; }
+
+    /* Hero */
+    .browse-hero h1 { font-size: 1.5rem; }
+    .hero-cta { padding: 0.6rem 1.5rem; font-size: 0.9rem; }
+
+    /* User cards */
+    .user-card { padding: 0.85rem; }
+    .user-card-name { font-size: 1rem; }
+    .user-card-avatar { width: 52px; height: 52px; }
+
+    /* Badges */
+    .badge { font-size: 0.72rem; padding: 0.28em 0.6em; }
+
+    /* Buttons */
+    .btn { min-width: unset; padding: 0.45rem 1rem; font-size: 0.85rem; }
+    .btn-lg { padding: 0.6rem 1.5rem; font-size: 0.95rem; }
+
+    /* Auth */
+    .auth-card { padding: 1.5rem 1rem; }
+    .auth-logo .brand-mark { font-size: 1.6rem; }
+
+    /* Profile */
+    .profile-photo-ring img { width: 110px; height: 110px; }
+    .no-photo-placeholder { width: 110px; height: 110px; }
+
+    /* Request form */
+    .requester-info { flex-direction: column; text-align: center; }
+    .star-radio-group { gap: 0.3rem; }
+
+    /* Cards */
+    .card { border-radius: 10px; }
+
+    /* Form section */
+    .form-section-card { padding: 1.2rem; }
+}

@@ -10,7 +10,7 @@
     </div>
 
     <!-- Search and Filter -->
-    <form method="GET" action="{{ url_for('swap.home') }}" class="d-flex justify-content-between align-items-center mb-4">
+    <form method="GET" action="{{ url_for('swap.home') }}" class="filter-form mb-4">
         <div class="filter-select-wrap">
             <select class="form-select" name="availability" onchange="this.form.submit()">
                 <option value="">All Availability</option>
@@ -20,9 +20,9 @@
                 <option value="flexible" {% if selected_availability == 'flexible' %}selected{% endif %}>Flexible</option>
             </select>
         </div>
-        <div class="input-group w-50">
-            <input type="text" class="form-control" name="search" placeholder="Search skills or users..." value="{{ search }}">
-            <button class="btn btn-outline-secondary" type="submit">Search</button>
+        <div class="search-bar-wrapper">
+            <input type="text" name="search" placeholder="Search skills or users..." value="{{ search }}">
+            <button class="btn btn-success btn-sm" type="submit">Search</button>
         </div>
     </form>
 
