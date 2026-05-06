@@ -15,9 +15,9 @@
             <!-- this condition is checked after the profile_photo is stored in the database -->
             {% if current_user.profile_photo %}
                 <div style="position: relative; display: inline-block;">
-                    <img id="profilePreview" src="{{ url_for('static', filename='images/' + current_user.profile_photo) }}"
-                        alt="Profile Photo"
-                        style="width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 2px solid #ccc;">
+                    <img id="profilePreview" src="{% if current_user.profile_photo and current_user.profile_photo.startswith('http') %}{{ current_user.profile_photo }}{% elif current_user.profile_photo %}{{ url_for('static', filename='images/' + current_user.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
+                    alt="Profile Photo"
+                    style="width: 140px; height: 140px; object-fit: cover; border-radius: 50%; border: 2px solid #ccc;">
                 </div>
             {% else %}
                 <p id="noPhotoText">No Profile uploaded</p>
