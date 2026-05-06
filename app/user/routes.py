@@ -6,6 +6,8 @@ from app.models import Skills, UserSkills
 from werkzeug.utils import secure_filename
 import os
 import uuid
+import cloudinary
+import cloudinary.uploader
 
 # a small app(blueprint) for managing user backend 
 user_bp = Blueprint('user', __name__, url_prefix='/user', template_folder='templates')
@@ -36,14 +38,16 @@ def home():
 
     if request.method == "POST" and 'remove_photo' in request.form:
         if current_user.profile_photo:
-            old_path = os.path.join(UPLOAD_FOLDER, current_user.profile_photo)
-            if os.path.exists(old_path):
-                os.remove(old_path)
+            try:
+                if current_user.profile_photo.startswith('http'):
+                    public_id = 'skillswap_profiles/' + current_user.profile_photo.split('/')[-1].split('.')[0]
+                    cloudinary.uploader.destroy(public_id)
+            except:
+                pass
             current_user.profile_photo = None
             db.session.commit()
             flash("Profile photo removed.", "info")
         return redirect(url_for('user.home'))
-
 
     if request.method == "POST" and form.validate_on_submit():
         # the current_user is the instance or full row of the User table and stores the values of properties like name, location, entered by the user in the form in the User table after db.session.commit()
@@ -57,27 +61,25 @@ def home():
         # get the photo which is uploaded inside the variable file
         file = form.photo.data
         # checks if the file exists and filename is not empty
+        
         if file and file.filename != '':
-            # for securing the file or converting it into safe version
-            # here uuid is used for giving unique ids to photos having same file names
-            filename = f"{uuid.uuid4().hex}_{secure_filename(file.filename)}"
-            # .path.join combines the upload_folder and the filename (here, static/images/myphoto.png)
-            # /home/harshita/projects/skillswap/static/images/abc123.jpg - full path example
-            photo_path = os.path.join(UPLOAD_FOLDER, filename)
-            # saves the file in the photo_path location
-            os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-            file.save(photo_path)
+            # Delete old photo from Cloudinary if exists
+            if current_user.profile_photo and current_user.profile_photo.startswith('http'):
+                try:
+                    public_id = 'skillswap_profiles/' + current_user.profile_photo.split('/')[-1].split('.')[0]
+                    cloudinary.uploader.destroy(public_id)
+                except:
+                    pass
 
-            # remove old photo/image if it exists from the static/images folder
-            if current_user.profile_photo:
-                # variable old path now contains full path of old profile photo (example: static/images/myphoto.png(current photo address))
-                old_path = os.path.join(UPLOAD_FOLDER, current_user.profile_photo)
-                # if old photo exists, remove it from the static folder
-                if os.path.exists(old_path):
-                    os.remove(old_path)
-            
-            # store the new photo filename in User table using current_user
-            current_user.profile_photo = filename
+            # Upload new photo to Cloudinary
+            upload_result = cloudinary.uploader.upload(
+                file,
+                folder='skillswap_profiles',
+                transformation=[
+                    {'width': 300, 'height': 300, 'crop': 'fill', 'gravity': 'face'}
+                ]
+            )
+            current_user.profile_photo = upload_result['secure_url']
 
         # this variable contains the list of ids stored in the hiddeninput field through JavaScript where selected fiels ids are stored
         # for example - ("1,2,4")

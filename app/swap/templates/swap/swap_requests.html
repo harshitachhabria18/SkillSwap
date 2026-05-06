@@ -26,10 +26,10 @@
 
                 <!-- Sender Info -->
                 <div class="d-flex align-items-center">
-                    <img src="{% if req.sender.profile_photo %}{{ url_for('static', filename='images/' + req.sender.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
-                         alt="Profile Photo"
-                         class="rounded-circle me-3"
-                         width="60" height="60">
+                    <img src="{% if req.sender.profile_photo and req.sender.profile_photo.startswith('http') %}{{ req.sender.profile_photo }}{% elif req.sender.profile_photo %}{{ url_for('static', filename='images/' + req.sender.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
+                    alt="Profile Photo"
+                    class="rounded-circle me-3"
+                    width="60" height="60">
                     <div>
                         <h5 class="mb-1">{{ req.sender.name }}</h5>
                         <p class="mb-1">
@@ -114,10 +114,10 @@
 
                 <!-- Receiver Info -->
                 <div class="d-flex align-items-center">
-                    <img src="{% if req.receiver.profile_photo %}{{ url_for('static', filename='images/' + req.receiver.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
-                         alt="Profile Photo"
-                         class="rounded-circle me-3"
-                         width="60" height="60">
+                    <img src="{% if req.receiver.profile_photo and req.receiver.profile_photo.startswith('http') %}{{ req.receiver.profile_photo }}{% elif req.receiver.profile_photo %}{{ url_for('static', filename='images/' + req.receiver.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
+                    alt="Profile Photo"
+                    class="rounded-circle me-3"
+                    width="60" height="60">
                     <div>
                         <h5 class="mb-1">{{ req.receiver.name }}</h5>
                         <p class="mb-1">

@@ -5,7 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask import redirect, url_for
-
+import cloudinary
 
 #load environment variables from .env
 load_dotenv()
@@ -37,6 +37,13 @@ def create_app():
 
     # binds SQLAlchemy object here (db) with the flask app
     db.init_app(app)
+
+    cloudinary.config(
+        cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'),
+        api_key    = os.getenv('CLOUDINARY_API_KEY'),
+        api_secret = os.getenv('CLOUDINARY_API_SECRET'),
+        secure     = True
+    )
 
     migrate.init_app(app, db)
 

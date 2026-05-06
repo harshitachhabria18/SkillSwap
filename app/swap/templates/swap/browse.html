@@ -32,10 +32,10 @@
         <div class="list-group-item py-4 d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">
                 <a href="{{ url_for('swap.view_profile', user_id=item.user.id) }}">
-                    <img src="{% if item.user.profile_photo %}{{ url_for('static', filename='images/' + item.user.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
-                         alt="Profile Photo"
-                         class="rounded-circle me-3"
-                         width="80" height="80">
+                    <img src="{% if item.user.profile_photo and item.user.profile_photo.startswith('http') %}{{ item.user.profile_photo }}{% elif item.user.profile_photo %}{{ url_for('static', filename='images/' + item.user.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
+                    alt="Profile Photo"
+                    class="rounded-circle me-3"
+                    width="80" height="80">
                 </a>
                 <div>
                     <h5 class="mb-1">{{ item.user.name }}</h5>

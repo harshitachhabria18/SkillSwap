@@ -8,10 +8,10 @@
 
         <!-- Receiver Info -->
         <div class="d-flex align-items-center mb-4">
-            <img src="{% if receiver.profile_photo %}{{ url_for('static', filename='images/' + receiver.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
-                 alt="Profile Photo"
-                 class="rounded-circle me-3"
-                 width="60" height="60">
+            <img src="{% if receiver.profile_photo and receiver.profile_photo.startswith('http') %}{{ receiver.profile_photo }}{% elif receiver.profile_photo %}{{ url_for('static', filename='images/' + receiver.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
+            alt="Profile Photo"
+            class="rounded-circle me-3"
+            width="60" height="60">
             <div>
                 <h5 class="mb-0">{{ receiver.name }}</h5>
                 <small class="text-muted">{{ receiver.location or 'Location not set' }}</small>

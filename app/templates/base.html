@@ -33,10 +33,10 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link d-flex align-items-center" href="{{ url_for('user.home', user_id=current_user.id) }}">
-                            <img src="{{ url_for('static', filename='images/' + (current_user.profile_photo or 'default_profile.png')) }}"
-                                alt="Profile"
-                                class="rounded-circle me-2"
-                                width="32" height="32">
+                            <img src="{% if current_user.profile_photo and current_user.profile_photo.startswith('http') %}{{ current_user.profile_photo }}{% elif current_user.profile_photo %}{{ url_for('static', filename='images/' + current_user.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
+                            alt="Profile"
+                            class="rounded-circle me-2"
+                            width="32" height="32">
                             {{ current_user.name }}
                         </a>
                     </li>
