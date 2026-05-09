@@ -40,9 +40,10 @@ def register():
 
         db.session.commit()
 
-        flash(message='Registration successful. Please log in.', category='success')
-        # once user registers, take to login page
-        return redirect(url_for('auth.login'))
+        # Auto login after registration
+        login_user(new_user)
+        flash(message='Welcome to SkillSwap! Complete your profile to get started.', category='success')
+        return redirect(url_for('swap.home'))
     
     # return the register.html page
     return render_template('register.html', form=form)
