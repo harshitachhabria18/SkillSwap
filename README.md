@@ -1,4 +1,4 @@
-# 🔄 SkillSwap
+<img width="738" height="449" alt="image" src="https://github.com/user-attachments/assets/d92b0f90-050f-416a-9e9e-5d0be776f943" /># 🔄 SkillSwap
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
@@ -45,6 +45,70 @@ Access to skill development often depends on financial resources, formal learnin
 3. Users send structured swap requests containing offered skills, requested skills, and personalized messages.
 4. Recipients can accept or reject requests with status tracking.
 5. After completing a swap, users can leave ratings and feedback to build trust and reputation within the platform.
+
+---
+
+## 🛠️ Tech Stack
+| Layer | Technology |
+|---|---|
+| Backend | Python 3.12, Flask |
+| Database | PostgreSQL |
+| ORM & Migrations | SQLAlchemy, Flask-Migrate, Alembic |
+| Authentication | Flask-Login, Werkzeug (Password Hashing) |
+| Forms & Validation | Flask-WTF, WTForms |
+| File Storage | Cloudinary |
+| Frontend | HTML5, CSS3, Bootstrap, JavaScript |
+| Templating Engine | Jinja2 |
+
+---
+
+## 📁 Project Structure
+```bash
+SKillSwap/
+├── app/
+│   ├── auth/
+│   │   ├── templates/
+│   │   │   └── auth/
+│   │   │       ├── login.html
+│   │   │       └── register.html
+│   │   ├── __init__.py
+│   │   └── routes.py
+│   ├── user/
+│   │   ├── templates/
+│   │   │   └── user/
+│   │   │       └── profile.html
+│   │   ├── __init__.py
+│   │   └── routes.py
+│   ├── swap/
+│   │   ├── templates/
+│   │   │   └── swap/
+│   │   │       ├── browse.html
+│   │   │       ├── request_swap.html
+│   │   │       ├── swap_requests.html
+│   │   │       ├── view_profile.html
+│   │   │       └── leave_feedback.html
+│   │   ├── __init__.py
+│   │   └── routes.py
+│   ├── static/
+│   │   ├── css/
+│   │   │   └── style.css
+│   │   ├── js/
+│   │   │   └── script.js
+│   │   └── images/
+│   ├── templates/
+│   │   └── base.html
+│   ├── __init__.py
+│   ├── models.py
+│   └── forms.py
+├── migrations/
+│   └── versions/
+├── instance/
+│   └── config.py
+├── .env
+├── requirements.txt
+├── run.py
+└── seed.py
+```
 
 ---
 
