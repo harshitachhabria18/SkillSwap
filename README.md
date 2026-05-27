@@ -112,4 +112,56 @@ SKillSwap/
 
 ---
 
+## 🚀 Setup and Installation
+### Prerequisites
+- Python 3.12+
+- PostgreSQL
+- Cloudinary Account
+
+### Clone the Repository
+```bash
+git clone https://github.com/harshitachhabria18/SkillSwap.git
+cd SkillSwap
+```
+
+### Create and Activate Virtual Environment
+```bash
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+# macOS/Linux
+source .venv/bin/activate
+```
+
+### Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### Configure Environment Variables
+Create a .env file in the root directory:
+```env
+SECRET_KEY=your_secret_key
+SQLALCHEMY_DATABASE_URI=postgresql://username:password@localhost/skillswap
+
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+### Initialize the Database
+```bash
+flask db init
+flask db migrate -m "Initial migration"
+flask db upgrade
+```
+
+### Run the Application
+```bash
+python run.py
+```
+
+Visit [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser. in your browser
 
