@@ -189,3 +189,16 @@ https://github.com/user-attachments/assets/86d6c4b2-2051-4239-b402-653be285a9b2
 
 ---
 
+## 🔮 Future Improvements
+- In-App Messaging — Real-time chat between matched users instead of relying on external communication
+- Notifications — Email or in-app notifications for swap request updates and new messages
+- Smart Matching — Algorithm to automatically suggest compatible swap partners based on offered and wanted skills
+- OAuth Login — Sign in with Google or GitHub for faster onboarding
+- Session Scheduling — Built-in calendar to schedule and manage swap sessions between users
+- Location-Based Matching — Filter and suggest users based on geographic proximity
+- Gamification — Badges and achievements to reward active and highly-rated users
+
+---
+
+## 👨‍💻 Author
+**Harshita Chhabria**
