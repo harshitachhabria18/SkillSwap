@@ -19,6 +19,6 @@
 
 SkillSwap is a full-stack web-based peer-to-peer skill exchange platform built using Flask (Python). Instead of paying for courses or tutoring, users exchange skills directly with one another. For example, a user who can teach Python and wants to learn Guitar can connect with someone who offers Guitar lessons and wants to learn Python.
 
-# 💡 Problem It Solves
+### 💡 Problem It Solves
 
 Learning new skills often requires money, formal enrollment, or access to the right network of people. SkillSwap removes this barrier by turning a user’s existing knowledge into value — skills themselves become the currency of exchange.
