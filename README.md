@@ -22,3 +22,30 @@ The platform supports user authentication, profile management, skill tagging, st
 
 ### 💡 Problem It Solves
 Access to skill development often depends on financial resources, formal learning platforms, or existing professional networks. SkillSwap addresses this challenge by providing a platform where users can exchange knowledge and expertise directly, enabling collaborative learning without monetary dependency.
+
+---
+
+## ✨ Features
+- **User Authentication** — Secure registration and login with password hashing and session management using Flask-Login
+- **Profile Management** — Update profile details including name, location, availability, session duration, and profile visibility
+- **Profile Photo Upload** — Profile images uploaded and managed through Cloudinary
+- **Skill Tagging** — Add and manage skills offered and skills requested from a shared skills database
+- **Browse & Search** — Paginated user discovery with search by name or skill, along with availability-based filtering
+- **Swap Requests** — Send structured swap requests with offered skills, requested skills, and personalized messages
+- **Request Management** — Manage incoming and outgoing requests with status tracking (Pending / Accepted / Rejected)
+- **Feedback & Ratings** — Submit star ratings and written reviews after completed skill swaps
+- **Average Rating Display** — Display average user ratings and review counts on profile and browse sections
+- **Profile Visibility Control** — Toggle profile visibility between Public and Private for controlled discoverability
+
+---
+
+## ⚙️ How SkillSwap Works
+1. Users create profiles and add skills they offer and skills they want to learn.
+2. The browse system allows users to search and filter potential matches by skill, availability, or location.
+3. Users send structured swap requests containing offered skills, requested skills, and personalized messages.
+4. Recipients can accept or reject requests with status tracking.
+5. After completing a swap, users can leave ratings and feedback to build trust and reputation within the platform.
+
+---
+
+
