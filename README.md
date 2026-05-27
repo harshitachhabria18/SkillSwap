@@ -64,7 +64,7 @@ Access to skill development often depends on financial resources, formal learnin
 
 ## 📁 Project Structure
 ```bash
-SKillSwap/
+SkillSwap/
 ├── app/
 │   ├── auth/
 │   │   ├── templates/
