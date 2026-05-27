@@ -1,4 +1,4 @@
-<img width="738" height="449" alt="image" src="https://github.com/user-attachments/assets/d92b0f90-050f-416a-9e9e-5d0be776f943" /># 🔄 SkillSwap
+# 🔄 SkillSwap
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
