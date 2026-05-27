@@ -170,7 +170,7 @@ Visit [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser
 ## 🗄️ Database Schema
 The application uses a relational database design to manage users, skills, swap requests, and feedback efficiently.
 
-![ER Diagram](screenshots/Skill Swap ER diagram.png)
+![ER Diagram](screenshots/er_diagram.png)
 
 ---
 
