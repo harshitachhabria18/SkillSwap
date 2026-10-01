@@ -6,6 +6,7 @@ from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask import redirect, url_for
 from flask_wtf.csrf import CSRFProtect
+from flask_mail import Mail
 import cloudinary
 
 #load environment variables from .env
@@ -13,6 +14,7 @@ load_dotenv()
 
 db = SQLAlchemy()
 csrf = CSRFProtect()
+mail = Mail()
 
 # manage user sessions
 login_manager = LoginManager()
@@ -60,6 +62,19 @@ def create_app():
     )
 
     migrate.init_app(app, db)
+
+    # Flask-Mail configuration (used for password reset emails)
+    app.config['MAIL_SERVER']   = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
+    app.config['MAIL_PORT']     = int(os.environ.get('MAIL_PORT', 587))
+    app.config['MAIL_USE_TLS']  = True
+    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
+    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
+    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', 'noreply@skillswap.com')
+    mail.init_app(app)
+
+    # Google OAuth (Authlib)
+    from app.auth.oauth import init_oauth
+    init_oauth(app)
 
     # binds the LoginManager to your app
     login_manager.init_app(app)
@@ -116,6 +131,9 @@ def create_app():
     app.register_blueprint(messaging_bp)
     app.register_blueprint(scheduling_bp)
     app.register_blueprint(admin_bp)
+
+    # Exempt Google callback from CSRF — the redirect comes from Google, not our form
+    csrf.exempt(auth_bp)
 
     @app.route('/')
     def index():
