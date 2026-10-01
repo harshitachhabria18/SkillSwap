@@ -46,12 +46,22 @@
                 <!-- Duration -->
                 <div class="mb-3">
                     <label class="form-label fw-semibold" for="duration_minutes">Duration</label>
-                    <select id="duration_minutes" name="duration_minutes" class="form-select">
+                    <select id="duration_minutes" name="duration_minutes" class="form-select"
+                            onchange="toggleCustomDuration(this.value)">
                         <option value="30">30 minutes</option>
+                        <option value="45">45 minutes</option>
                         <option value="60" selected>60 minutes</option>
                         <option value="90">90 minutes</option>
                         <option value="120">2 hours</option>
+                        <option value="custom">Custom…</option>
                     </select>
+                    <!-- Hidden custom input — shown only when 'Custom' is selected -->
+                    <div id="custom-duration-wrap" class="mt-2 d-none">
+                        <input type="number" id="custom_duration_input"
+                               class="form-control" placeholder="Enter minutes (e.g. 75)"
+                               min="15" max="480">
+                        <div class="form-text">Between 15 and 480 minutes.</div>
+                    </div>
                 </div>
 
                 <!-- Meeting link with Jitsi generator -->
@@ -190,8 +200,35 @@
 
 </div>
 
-<!-- ── JS: timezone conversion + Jitsi link generator ── -->
+<!-- ── JS: custom duration + timezone conversion + Jitsi link generator ── -->
 <script>
+// ── Custom duration toggle ────────────────────────────────────────────────────
+function toggleCustomDuration(val) {
+    var wrap  = document.getElementById('custom-duration-wrap');
+    var input = document.getElementById('custom_duration_input');
+    if (!wrap) return;
+    if (val === 'custom') {
+        wrap.classList.remove('d-none');
+        input.required = true;
+    } else {
+        wrap.classList.add('d-none');
+        input.required = false;
+    }
+}
+
+// Before the propose form submits with 'Custom' selected,
+// move the typed number into the select's value so the server receives an integer.
+var proposeForm = document.querySelector('form[action*="propose"]');
+if (proposeForm) {
+    proposeForm.addEventListener('submit', function () {
+        var sel   = document.getElementById('duration_minutes');
+        var input = document.getElementById('custom_duration_input');
+        if (sel && sel.value === 'custom' && input && input.value) {
+            sel.value = input.value;   // replace 'custom' with the actual number
+        }
+    });
+}
+
 (function () {
     'use strict';
 
