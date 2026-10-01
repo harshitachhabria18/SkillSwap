@@ -59,3 +59,35 @@ class Feedback(db.Model):
     reviewer = db.relationship('User', foreign_keys=[reviewer_id], backref='reviews_given')
     reviewee = db.relationship('User', foreign_keys=[reviewee_id], backref='reviews_received')
     swap_request = db.relationship('SwapRequest', backref='feedbacks')
+
+
+class Notification(db.Model):
+    """
+    One row = one notification for one user.
+
+    - type     : short code for the event, e.g. 'swap_received', 'swap_accepted'
+    - ref_id   : the related object's id (e.g. swap_request.id) used for collapsing
+    - count    : how many times this notification was collapsed (starts at 1)
+    - is_read  : False until the user clicks it or hits "mark all read"
+    - created_at: refreshed whenever the notification is collapsed/updated
+
+    Composite index on (user_id, is_read) keeps the unread-count query fast.
+    """
+    __tablename__ = 'notification'
+
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    type       = db.Column(db.String(50), nullable=False)
+    message    = db.Column(db.String(300), nullable=False)
+    link       = db.Column(db.String(200), nullable=False, default='/notifications/')
+    is_read    = db.Column(db.Boolean, default=False, nullable=False)
+    ref_id     = db.Column(db.Integer, nullable=True)   # e.g. swap_request_id
+    count      = db.Column(db.Integer, default=1, nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.now(), onupdate=db.func.now())
+
+    user = db.relationship('User', backref='notifications')
+
+    # Composite index — fast lookup for the unread-count badge and collapse check
+    __table_args__ = (
+        db.Index('ix_notification_user_is_read', 'user_id', 'is_read'),
+    )
