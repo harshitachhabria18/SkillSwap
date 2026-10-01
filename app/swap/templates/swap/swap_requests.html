@@ -52,14 +52,17 @@
                     {% if req.status == 'Pending' %}
                         <span class="badge bg-warning text-dark mb-2 d-block">Pending</span>
                         <form method="POST" action="{{ url_for('swap.accept_request', request_id=req.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-success btn-sm">Accept</button>
                         </form>
                         <form method="POST" action="{{ url_for('swap.reject_request', request_id=req.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-danger btn-sm">Reject</button>
                         </form>
                     {% elif req.status == 'Accepted' %}
                         <span class="badge bg-success mb-2 d-block">Accepted</span>
                         <form method="POST" action="{{ url_for('swap.complete_request', request_id=req.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-primary btn-sm">Mark as Complete</button>
                         </form>
                     {% elif req.status == 'Rejected' %}
@@ -142,6 +145,7 @@
                     {% elif req.status == 'Accepted' %}
                         <span class="badge bg-success">Accepted</span>
                         <form method="POST" action="{{ url_for('swap.complete_request', request_id=req.id) }}" class="mt-2">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-primary btn-sm">Mark as Complete</button>
                         </form>
                     {% elif req.status == 'Rejected' %}

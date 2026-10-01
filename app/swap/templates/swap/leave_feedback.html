@@ -22,6 +22,7 @@
 
         <!-- Feedback Form -->
         <form method="POST" action="{{ url_for('swap.leave_feedback', request_id=swap_req.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <!-- Star Rating -->
             <div class="mb-4">

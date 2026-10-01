@@ -77,8 +77,8 @@ def login():
 
     return render_template('login.html', form=form)
 
-# route for logout
-@auth_bp.route('/logout')
+# route for logout (POST only — GET logout is a CSRF risk)
+@auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
     logout_user()

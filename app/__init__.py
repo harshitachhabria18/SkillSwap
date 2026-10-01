@@ -5,12 +5,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
 from flask import redirect, url_for
+from flask_wtf.csrf import CSRFProtect
 import cloudinary
 
 #load environment variables from .env
 load_dotenv()
 
 db = SQLAlchemy()
+csrf = CSRFProtect()
 
 # manage user sessions
 login_manager = LoginManager()
@@ -26,17 +28,29 @@ def create_app():
 
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
 
-    print("Using database file at:", app.config['SQLALCHEMY_DATABASE_URI'])
-    # app = Flask(__name__)
+    # fix(5): raise a clear error instead of using a hardcoded fallback key
+    secret_key = os.getenv('SECRET_KEY')
+    if not secret_key:
+        raise RuntimeError(
+            "SECRET_KEY environment variable is not set. "
+            "Add SECRET_KEY=<your-random-string> to your .env file."
+        )
+    app.config['SECRET_KEY'] = secret_key
 
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-secret-key')
-    # to connect flask app with sqlite database having file site.db 
-    # app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
     # disables a feature that tracks every change to objects.
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    # fix(10): keep connections alive on Neon/Render (avoids idle-connection drops)
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
+
     # binds SQLAlchemy object here (db) with the flask app
     db.init_app(app)
+
+    # fix(2): enable CSRF protection globally for all POST forms
+    csrf.init_app(app)
 
     cloudinary.config(
         cloud_name = os.getenv('CLOUDINARY_CLOUD_NAME'),
@@ -59,8 +73,8 @@ def create_app():
     # login_user(user) puts user.id into the session, and load_user(user_id) retrieves the full row from the User table using that ID. That full object becomes current_user
     @login_manager.user_loader
     def load_user(user_id):
-        # returns the row based on the query having a specific user_id which becomes the current user logged in
-        return User.query.get(int(user_id))
+        # fix(6): db.session.get() is the SQLAlchemy 2.0 replacement for Query.get()
+        return db.session.get(User, int(user_id))
 
     # Register blueprints here - they are like mini applications 
     from app.auth.routes import auth_bp
