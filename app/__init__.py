@@ -117,5 +117,26 @@ def create_app():
     @app.route('/')
     def index():
         return redirect(url_for('swap.home'))
-        
+
+    # ── CLI: flask make-admin <email> ─────────────────────────────────────────
+    # This is the ONLY way to promote a user to admin.
+    # There is no web route for promotion — it must be run in the terminal.
+    # Usage:  flask make-admin harshita@example.com
+    import click
+    @app.cli.command('make-admin')
+    @click.argument('email')
+    def make_admin(email):
+        """Promote a user to admin by their email address."""
+        from app.models import User
+        user = User.query.filter_by(email=email).first()
+        if not user:
+            click.echo(f'❌ No user found with email: {email}')
+            return
+        if user.is_admin:
+            click.echo(f'ℹ️  {email} is already an admin.')
+            return
+        user.is_admin = True
+        db.session.commit()
+        click.echo(f'✅ {email} is now an admin.')
+
     return app
