@@ -12,7 +12,7 @@
         <tr>
             <th>ID</th>
             <th>Reviewer</th>
-            <th>Reviewed</th>
+            <th>Reviewed (Reviewee)</th>
             <th>Rating</th>
             <th>Comment</th>
             <th style="width:100px;">Action</th>
@@ -23,7 +23,7 @@
         <tr>
             <td class="text-muted">{{ fb.id }}</td>
             <td>{{ fb.reviewer.name if fb.reviewer else '—' }}</td>
-            <td>{{ fb.reviewed.name if fb.reviewed else '—' }}</td>
+            <td>{{ fb.reviewee.name if fb.reviewee else '—' }}</td>
             <td>
                 {% for i in range(fb.rating) %}⭐{% endfor %}
                 <span class="text-muted">({{ fb.rating }}/5)</span>

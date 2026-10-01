@@ -249,7 +249,7 @@ def delete_feedback(fb_id):
 
     current_app.logger.info(
         f'[ADMIN] {current_user.email} deleted feedback id={fb_id} '
-        f'(reviewer={fb.reviewer_id}, reviewed={fb.reviewed_id})'
+        f'(reviewer={fb.reviewer_id}, reviewee={fb.reviewee_id})'
     )
     db.session.delete(fb)
     db.session.commit()
