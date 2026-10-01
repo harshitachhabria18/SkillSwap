@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import current_user, login_required
 from app import db
 from app.models import User, UserSkills, Skills, SwapRequest, Feedback
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 swap_bp = Blueprint('swap', __name__, url_prefix='/swap', template_folder='templates')
 
@@ -32,26 +32,50 @@ def home():
 
     pagination = users_query.paginate(page=page, per_page=4, error_out=False)
 
+    # fix(9): batch-load skills and ratings in bulk to eliminate N+1 queries
+    user_ids = [u.id for u in pagination.items]
+
+    # One query: all UserSkills rows (+ joined skill name) for this page's users
+    all_user_skills = (
+        db.session.query(UserSkills, Skills.name)
+        .join(Skills, Skills.id == UserSkills.skills_id)
+        .filter(UserSkills.user_id.in_(user_ids))
+        .all()
+    )
+
+    # Build lookup dicts keyed by user_id
+    offered_map = {}  # {user_id: [skill_name, ...]}
+    wanted_map  = {}  # {user_id: [skill_name, ...]}
+    for us, skill_name in all_user_skills:
+        if us.skill_type == 'offered':
+            offered_map.setdefault(us.user_id, []).append(skill_name)
+        else:
+            wanted_map.setdefault(us.user_id, []).append(skill_name)
+
+    # One query: avg rating and review count per user (for this page's users)
+    rating_rows = (
+        db.session.query(
+            Feedback.reviewee_id,
+            func.avg(Feedback.rating).label('avg_rating'),
+            func.count(Feedback.id).label('review_count'),
+        )
+        .filter(Feedback.reviewee_id.in_(user_ids))
+        .group_by(Feedback.reviewee_id)
+        .all()
+    )
+    rating_map = {row.reviewee_id: row for row in rating_rows}  # {user_id: row}
+
     user_data = []
     for user in pagination.items:
-        offered = UserSkills.query.filter_by(user_id=user.id, skill_type='offered').all()
-        wanted = UserSkills.query.filter_by(user_id=user.id, skill_type='wanted').all()
-
-        # Calculate BEFORE append
-        feedbacks = Feedback.query.filter_by(reviewee_id=user.id).all()
-        avg_rating = None
-        if feedbacks:
-            avg_rating = round(sum(f.rating for f in feedbacks) / len(feedbacks), 1)
-
+        r = rating_map.get(user.id)
+        avg_rating = round(float(r.avg_rating), 1) if r else None
         user_data.append({
             'user': user,
-            'skills_offered': [us.skill.name for us in offered],
-            'skills_wanted': [us.skill.name for us in wanted],
-            'avg_rating': avg_rating,
-            'review_count': len(feedbacks)
+            'skills_offered': offered_map.get(user.id, []),
+            'skills_wanted':  wanted_map.get(user.id, []),
+            'avg_rating':    avg_rating,
+            'review_count':  r.review_count if r else 0,
         })
-
-
 
     return render_template(
         'swap/browse.html',
