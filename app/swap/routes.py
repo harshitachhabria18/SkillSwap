@@ -102,6 +102,11 @@ def request_swap(user_id):
         flash('You cannot send a swap request to yourself.', 'warning')
         return redirect(url_for('swap.home'))
 
+    # fix(4): block swap requests to users with a private profile
+    if receiver.profile_visibility != 'Public':
+        flash('This user has a private profile and cannot receive swap requests.', 'warning')
+        return redirect(url_for('swap.home'))
+
     # Get current user's offered skills (what they can offer)
     my_offered = UserSkills.query.filter_by(
         user_id=current_user.id, skill_type='offered'
