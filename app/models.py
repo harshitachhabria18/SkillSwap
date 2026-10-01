@@ -27,18 +27,18 @@ class Skills(db.Model):
 
 class UserSkills(db.Model):
     id=db.Column(db.Integer, primary_key = True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),nullable=False)
-    skills_id = db.Column(db.Integer, db.ForeignKey('skills.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    skills_id = db.Column(db.Integer, db.ForeignKey('skills.id'), nullable=False, index=True)
     skill_type = db.Column(db.String(20),nullable=False) # offered and wanted 
 
 class SwapRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    receiver_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     offered_skill_id = db.Column(db.Integer, db.ForeignKey('skills.id'), nullable=False)
     wanted_skill_id = db.Column(db.Integer, db.ForeignKey('skills.id'), nullable=False)
     message = db.Column(db.Text)
-    status = db.Column(db.String(20), default='Pending')  # Pending, Accepted, Rejected
+    status = db.Column(db.String(20), default='Pending', index=True)  # Pending, Accepted, Rejected
     timestamp = db.Column(db.DateTime, default=db.func.now())
 
     sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_requests')
