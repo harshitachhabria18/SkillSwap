@@ -13,6 +13,9 @@ class User(db.Model, UserMixin):
     availability = db.Column(db.String(100))
     session_duration = db.Column(db.String(50))
     profile_visibility = db.Column(db.String(50))
+    # Admin panel fields
+    is_admin           = db.Column(db.Boolean, default=False, nullable=False)
+    is_active_account  = db.Column(db.Boolean, default=True,  nullable=False)  # False = banned
 
     # this line user_skills
     # user = User.query.get(1)

@@ -88,6 +88,17 @@ def create_app():
             return {'unread_notification_count': count}
         return {'unread_notification_count': 0}
 
+    # Ban enforcement: if a logged-in user's account gets banned while they are
+    # still in an active session, log them out on their very next request.
+    @app.before_request
+    def check_banned():
+        from flask_login import logout_user
+        from flask import redirect, url_for, flash
+        if current_user.is_authenticated and not current_user.is_active_account:
+            logout_user()
+            flash('Your account has been suspended. Please contact support.', 'danger')
+            return redirect(url_for('auth.login'))
+
     # Register blueprints here - they are like mini applications
     from app.auth.routes import auth_bp
     from app.user.routes import user_bp

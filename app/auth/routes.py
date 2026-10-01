@@ -64,12 +64,17 @@ def login():
             flash(message='No account found with that email.', category='danger')
             return render_template('login.html', form=form)
 
-         # Then check password
+        # Then check password
         if not check_password_hash(user.password, form.password.data):
             flash(message='Incorrect password.', category='danger')
             return render_template('login.html', form=form)
 
-        # Both correct — log in and go to Home page
+        # Check if account is banned
+        if not user.is_active_account:
+            flash(message='Your account has been suspended. Please contact support.', category='danger')
+            return render_template('login.html', form=form)
+
+        # All checks passed — log in and go to Home page
         login_user(user)
         flash(message='Logged in successfully!', category='success')
         return redirect(url_for('swap.home'))  # ← goes to Screen 1
