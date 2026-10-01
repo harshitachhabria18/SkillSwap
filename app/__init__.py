@@ -107,12 +107,15 @@ def create_app():
     from app.messaging.routes import messaging_bp
     from app.scheduling.routes import scheduling_bp
 
+    from app.admin.routes import admin_bp
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(swap_bp)
     app.register_blueprint(notif_bp)
     app.register_blueprint(messaging_bp)
     app.register_blueprint(scheduling_bp)
+    app.register_blueprint(admin_bp)
 
     @app.route('/')
     def index():
