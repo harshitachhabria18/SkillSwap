@@ -1,0 +1,80 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<h4 class="mb-4">📊 Dashboard</h4>
+
+<!-- Users row -->
+<h6 class="text-muted text-uppercase mb-2" style="font-size:.75rem;letter-spacing:.05em;">Users</h6>
+<div class="row g-3 mb-4">
+    <div class="col-sm-4">
+        <div class="card text-center p-3 border-0 shadow-sm" style="border-radius:12px;background:#f0fdf4;">
+            <div style="font-size:2rem;font-weight:700;color:#16a34a;">{{ stats.total_users }}</div>
+            <div class="text-muted small">Total Users</div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card text-center p-3 border-0 shadow-sm" style="border-radius:12px;background:#f0f9ff;">
+            <div style="font-size:2rem;font-weight:700;color:#0284c7;">{{ stats.active_users }}</div>
+            <div class="text-muted small">Active</div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card text-center p-3 border-0 shadow-sm" style="border-radius:12px;background:#fff1f2;">
+            <div style="font-size:2rem;font-weight:700;color:#dc2626;">{{ stats.banned_users }}</div>
+            <div class="text-muted small">Banned</div>
+        </div>
+    </div>
+</div>
+
+<!-- Swaps row -->
+<h6 class="text-muted text-uppercase mb-2" style="font-size:.75rem;letter-spacing:.05em;">Swap Requests</h6>
+<div class="row g-3 mb-4">
+    <div class="col-sm-3">
+        <div class="card text-center p-3 border-0 shadow-sm" style="border-radius:12px;background:#fafafa;">
+            <div style="font-size:2rem;font-weight:700;">{{ stats.total_swaps }}</div>
+            <div class="text-muted small">Total</div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="card text-center p-3 border-0 shadow-sm" style="border-radius:12px;background:#fffbeb;">
+            <div style="font-size:2rem;font-weight:700;color:#d97706;">{{ stats.pending_swaps }}</div>
+            <div class="text-muted small">Pending</div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="card text-center p-3 border-0 shadow-sm" style="border-radius:12px;background:#f0fdf4;">
+            <div style="font-size:2rem;font-weight:700;color:#16a34a;">{{ stats.accepted_swaps }}</div>
+            <div class="text-muted small">Accepted</div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="card text-center p-3 border-0 shadow-sm" style="border-radius:12px;background:#f0f9ff;">
+            <div style="font-size:2rem;font-weight:700;color:#0284c7;">{{ stats.completed_swaps }}</div>
+            <div class="text-muted small">Completed</div>
+        </div>
+    </div>
+</div>
+
+<!-- Other counts -->
+<h6 class="text-muted text-uppercase mb-2" style="font-size:.75rem;letter-spacing:.05em;">Other</h6>
+<div class="row g-3">
+    <div class="col-sm-4">
+        <div class="card text-center p-3 border-0 shadow-sm" style="border-radius:12px;background:#faf5ff;">
+            <div style="font-size:2rem;font-weight:700;color:#7c3aed;">{{ stats.total_skills }}</div>
+            <div class="text-muted small">Skills</div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card text-center p-3 border-0 shadow-sm" style="border-radius:12px;background:#fffbeb;">
+            <div style="font-size:2rem;font-weight:700;color:#d97706;">{{ stats.total_feedback }}</div>
+            <div class="text-muted small">Feedback Reviews</div>
+        </div>
+    </div>
+    <div class="col-sm-4">
+        <div class="card text-center p-3 border-0 shadow-sm" style="border-radius:12px;background:#fff1f2;">
+            <div style="font-size:2rem;font-weight:700;color:#dc2626;">{{ stats.rejected_swaps }}</div>
+            <div class="text-muted small">Rejected Swaps</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

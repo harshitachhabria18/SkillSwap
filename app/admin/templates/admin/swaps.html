@@ -1,0 +1,80 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">🔄 Swap Requests <small class="text-muted fs-6 fw-normal">(read-only)</small></h4>
+    <span class="text-muted small">{{ pagination.total }} swap{{ 's' if pagination.total != 1 }}</span>
+</div>
+
+<!-- Status filter tabs -->
+<div class="mb-3 d-flex gap-2 flex-wrap">
+    {% for s in ['', 'Pending', 'Accepted', 'Completed', 'Rejected'] %}
+        <a href="{{ url_for('admin.swaps', status=s) }}"
+           class="btn btn-sm {% if selected_status == s %}btn-dark{% else %}btn-outline-secondary{% endif %}">
+            {{ s if s else 'All' }}
+        </a>
+    {% endfor %}
+</div>
+
+<!-- Table -->
+<div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+<table class="table table-hover mb-0 align-middle small">
+    <thead style="background:#f8f9fa;">
+        <tr>
+            <th>ID</th>
+            <th>Sender</th>
+            <th>Receiver</th>
+            <th>Offered Skill</th>
+            <th>Wanted Skill</th>
+            <th>Status</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for swap in swaps %}
+        <tr>
+            <td class="text-muted">{{ swap.id }}</td>
+            <td>{{ swap.sender.name }}</td>
+            <td>{{ swap.receiver.name }}</td>
+            <td>{{ swap.offered_skill.name if swap.offered_skill else '—' }}</td>
+            <td>{{ swap.wanted_skill.name if swap.wanted_skill else '—' }}</td>
+            <td>
+                {% if swap.status == 'Pending' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                {% elif swap.status == 'Accepted' %}
+                    <span class="badge bg-success">Accepted</span>
+                {% elif swap.status == 'Completed' %}
+                    <span class="badge bg-primary">Completed</span>
+                {% elif swap.status == 'Rejected' %}
+                    <span class="badge bg-danger">Rejected</span>
+                {% else %}
+                    <span class="badge bg-secondary">{{ swap.status }}</span>
+                {% endif %}
+            </td>
+            <td class="text-muted">{{ swap.timestamp.strftime('%d %b %Y') if swap.timestamp else '—' }}</td>
+        </tr>
+    {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">No swap requests found.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<nav class="mt-3">
+    <ul class="pagination pagination-sm justify-content-center">
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+                <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('admin.swaps', page=p, status=selected_status) }}">{{ p }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
