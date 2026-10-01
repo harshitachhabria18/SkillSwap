@@ -261,11 +261,20 @@ def leave_feedback(request_id):
             flash('Please select a rating.', 'danger')
             return redirect(url_for('swap.leave_feedback', request_id=request_id))
 
+        # fix(3): validate rating is a whole number between 1 and 5
+        try:
+            rating = int(rating)
+            if rating < 1 or rating > 5:
+                raise ValueError
+        except ValueError:
+            flash('Rating must be a number between 1 and 5.', 'danger')
+            return redirect(url_for('swap.leave_feedback', request_id=request_id))
+
         feedback = Feedback(
             swap_request_id=request_id,
             reviewer_id=current_user.id,
             reviewee_id=reviewee.id,
-            rating=int(rating),
+            rating=rating,
             comment=comment
         )
         db.session.add(feedback)
