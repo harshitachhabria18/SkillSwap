@@ -95,15 +95,15 @@
     <nav class="mb-5">
         <ul class="pagination justify-content-center">
             <li class="page-item {% if not received_pagination.has_prev %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('swap.swap_requests', page=received_pagination.prev_num, status=selected_status) }}">«</a>
+                <a class="page-link" href="{{ url_for('swap.swap_requests', received_page=received_pagination.prev_num, status=selected_status) }}">«</a>
             </li>
             {% for p in received_pagination.iter_pages() %}
                 <li class="page-item {% if p == received_pagination.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('swap.swap_requests', page=p, status=selected_status) }}">{{ p }}</a>
+                    <a class="page-link" href="{{ url_for('swap.swap_requests', received_page=p, status=selected_status) }}">{{ p }}</a>
                 </li>
             {% endfor %}
             <li class="page-item {% if not received_pagination.has_next %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('swap.swap_requests', page=received_pagination.next_num, status=selected_status) }}">»</a>
+                <a class="page-link" href="{{ url_for('swap.swap_requests', received_page=received_pagination.next_num, status=selected_status) }}">»</a>
             </li>
         </ul>
     </nav>
@@ -178,15 +178,15 @@
     <nav>
         <ul class="pagination justify-content-center">
             <li class="page-item {% if not sent_pagination.has_prev %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('swap.swap_requests', page=sent_pagination.prev_num, status=selected_status) }}">«</a>
+                <a class="page-link" href="{{ url_for('swap.swap_requests', sent_page=sent_pagination.prev_num, status=selected_status) }}">«</a>
             </li>
             {% for p in sent_pagination.iter_pages() %}
                 <li class="page-item {% if p == sent_pagination.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('swap.swap_requests', page=p, status=selected_status) }}">{{ p }}</a>
+                    <a class="page-link" href="{{ url_for('swap.swap_requests', sent_page=p, status=selected_status) }}">{{ p }}</a>
                 </li>
             {% endfor %}
             <li class="page-item {% if not sent_pagination.has_next %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('swap.swap_requests', page=sent_pagination.next_num, status=selected_status) }}">»</a>
+                <a class="page-link" href="{{ url_for('swap.swap_requests', sent_page=sent_pagination.next_num, status=selected_status) }}">»</a>
             </li>
         </ul>
     </nav>

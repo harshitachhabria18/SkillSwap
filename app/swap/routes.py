@@ -162,21 +162,23 @@ def request_swap(user_id):
 @login_required
 def swap_requests():
     status_filter = request.args.get('status', '').strip()
-    page = request.args.get('page', 1, type=int)
+    # fix(7): separate pagination params so the two lists scroll independently
+    received_page = request.args.get('received_page', 1, type=int)
+    sent_page = request.args.get('sent_page', 1, type=int)
 
     # Received requests (others sent to you)
     received_query = SwapRequest.query.filter_by(receiver_id=current_user.id)
     if status_filter:
         received_query = received_query.filter_by(status=status_filter)
     received_pagination = received_query.order_by(SwapRequest.timestamp.desc())\
-                                        .paginate(page=page, per_page=4, error_out=False)
+                                        .paginate(page=received_page, per_page=4, error_out=False)
 
     # Sent requests (you sent to others)
     sent_query = SwapRequest.query.filter_by(sender_id=current_user.id)
     if status_filter:
         sent_query = sent_query.filter_by(status=status_filter)
     sent_pagination = sent_query.order_by(SwapRequest.timestamp.desc())\
-                                .paginate(page=page, per_page=4, error_out=False)
+                                .paginate(page=sent_page, per_page=4, error_out=False)
 
     return render_template(
         'swap/swap_requests.html',
