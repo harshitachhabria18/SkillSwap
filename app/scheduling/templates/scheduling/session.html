@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4" style="max-width: 680px;">
+
+    <!-- Header -->
+    <div class="session-header d-flex align-items-center gap-3 mb-4">
+        <a href="{{ url_for('swap.swap_requests') }}" class="btn btn-sm btn-outline-secondary">← Back</a>
+        <div>
+            <h5 class="mb-0">📅 Session with {{ other.name }}</h5>
+            <small class="text-muted">
+                Swap: {{ swap.offered_skill.name }} ↔ {{ swap.wanted_skill.name }}
+            </small>
+        </div>
+    </div>
+
+    {# ══════════════════════════════════════════════════════════
+       STATE 1 — No active session: show the proposal form
+    ══════════════════════════════════════════════════════════ #}
+    {% if not session %}
+
+        <!-- Show last session context if there was a previous one -->
+        {% if last_session and last_session.status in ('Declined', 'Cancelled') %}
+        <div class="alert alert-warning py-2 mb-3">
+            <strong>Previous session was {{ last_session.status }}.</strong>
+            You can propose a new time below.
+        </div>
+        {% endif %}
+
+        <div class="card p-4 session-card">
+            <h6 class="mb-3 text-muted text-uppercase" style="font-size:.78rem;letter-spacing:.05em;">
+                Propose a session time
+            </h6>
+
+            <form method="POST" action="{{ url_for('scheduling.propose', swap_id=swap.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <!-- Date & Time -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="start_time">Date & Time</label>
+                    <input type="datetime-local" id="start_time" name="start_time"
+                           class="form-control" required>
+                    <div class="form-text">Enter the time in your local timezone — it will be stored and shown in everyone's local time.</div>
+                </div>
+
+                <!-- Duration -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="duration_minutes">Duration</label>
+                    <select id="duration_minutes" name="duration_minutes" class="form-select">
+                        <option value="30">30 minutes</option>
+                        <option value="60" selected>60 minutes</option>
+                        <option value="90">90 minutes</option>
+                        <option value="120">2 hours</option>
+                    </select>
+                </div>
+
+                <!-- Meeting link with Jitsi generator -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" for="meeting_link">Meeting Link <span class="text-muted fw-normal">(optional)</span></label>
+                    <div class="input-group">
+                        <input type="url" id="meeting_link" name="meeting_link"
+                               class="form-control"
+                               placeholder="https://meet.jit.si/... or your own link">
+                        <button type="button" class="btn btn-outline-secondary" id="generate-btn"
+                                title="Generate a Jitsi Meet link">
+                            ⚡ Generate
+                        </button>
+                    </div>
+                    <div class="form-text">Must start with http:// or https://</div>
+                </div>
+
+                <!-- Notes -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold" for="notes">Notes <span class="text-muted fw-normal">(optional, max 500 chars)</span></label>
+                    <textarea id="notes" name="notes" class="form-control"
+                              rows="2" maxlength="500"
+                              placeholder="e.g. Let's focus on Python basics..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100">
+                    📅 Propose this time
+                </button>
+            </form>
+        </div>
+
+    {# ══════════════════════════════════════════════════════════
+       STATE 2 — Active session exists: show its details
+    ══════════════════════════════════════════════════════════ #}
+    {% else %}
+
+        <div class="card p-4 session-card">
+
+            <!-- Status badge -->
+            <div class="mb-3">
+                {% if session.status == 'Proposed' %}
+                    <span class="badge session-badge-proposed fs-6">⏳ Proposed</span>
+                {% elif session.status == 'Confirmed' %}
+                    <span class="badge session-badge-confirmed fs-6">✅ Confirmed</span>
+                {% endif %}
+            </div>
+
+            <!-- Who proposed -->
+            <p class="text-muted mb-3" style="font-size:.9rem;">
+                {% if is_proposer %}
+                    You proposed this session — waiting for <strong>{{ other.name }}</strong> to respond.
+                {% else %}
+                    <strong>{{ other.name }}</strong> proposed this session.
+                {% endif %}
+            </p>
+
+            <!-- Session details -->
+            <div class="session-details mb-4">
+
+                <!-- Date/time — JS will convert from UTC to local -->
+                <div class="session-detail-row">
+                    <span class="session-icon">📅</span>
+                    <span>
+                        <strong>Date & Time</strong><br>
+                        <span id="session-time"
+                              data-utc="{{ session.start_time.isoformat() }}">
+                            {{ session.start_time.strftime('%Y-%m-%d %H:%M') }} UTC
+                        </span>
+                        <small class="text-muted">(converting to your local time…)</small>
+                    </span>
+                </div>
+
+                <!-- Duration -->
+                <div class="session-detail-row">
+                    <span class="session-icon">⏱</span>
+                    <span><strong>Duration:</strong> {{ session.duration_minutes }} minutes</span>
+                </div>
+
+                <!-- Meeting link — only shown to participants when Confirmed -->
+                {% if session.meeting_link %}
+                <div class="session-detail-row">
+                    <span class="session-icon">🔗</span>
+                    <span>
+                        <strong>Meeting Link:</strong><br>
+                        {% if session.status == 'Confirmed' %}
+                            <a href="{{ session.meeting_link }}" target="_blank" rel="noopener noreferrer"
+                               class="btn btn-success btn-sm mt-1 session-join-btn">
+                                🚀 Join Meeting (opens in new tab)
+                            </a>
+                        {% else %}
+                            <span class="text-muted fst-italic">Link visible after confirmation</span>
+                        {% endif %}
+                    </span>
+                </div>
+                {% endif %}
+
+                <!-- Notes -->
+                {% if session.notes %}
+                <div class="session-detail-row">
+                    <span class="session-icon">📝</span>
+                    <span><strong>Notes:</strong><br>{{ session.notes }}</span>
+                </div>
+                {% endif %}
+
+            </div><!-- /.session-details -->
+
+            <!-- Action buttons — depend on state and who you are -->
+            <div class="d-flex flex-wrap gap-2">
+
+                {% if session.status == 'Proposed' and not is_proposer %}
+                    <!-- Responder can Confirm or Decline -->
+                    <form method="POST" action="{{ url_for('scheduling.confirm', swap_id=swap.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-success">✅ Confirm</button>
+                    </form>
+                    <form method="POST" action="{{ url_for('scheduling.decline', swap_id=swap.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-outline-danger">❌ Decline</button>
+                    </form>
+                {% endif %}
+
+                <!-- Either participant can cancel at any time -->
+                <form method="POST" action="{{ url_for('scheduling.cancel', swap_id=swap.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm"
+                            onclick="return confirm('Cancel this session?')">
+                        🚫 Cancel Session
+                    </button>
+                </form>
+
+            </div>
+
+        </div><!-- /.card -->
+
+    {% endif %}
+
+</div>
+
+<!-- ── JS: timezone conversion + Jitsi link generator ── -->
+<script>
+(function () {
+    'use strict';
+
+    // ── 1. Convert stored UTC time to user's local timezone ───────────────────
+    const timeEl = document.getElementById('session-time');
+    if (timeEl) {
+        const utcStr = timeEl.dataset.utc;
+        if (utcStr) {
+            try {
+                // Append 'Z' to tell JS this is UTC, then format in local time
+                const d = new Date(utcStr + 'Z');
+                timeEl.textContent = d.toLocaleString(undefined, {
+                    weekday: 'short',
+                    day:     'numeric',
+                    month:   'long',
+                    year:    'numeric',
+                    hour:    '2-digit',
+                    minute:  '2-digit',
+                });
+            } catch (_) {
+                // Fall back to the server-rendered UTC string (already in the span)
+            }
+        }
+        // Remove the "(converting…)" hint
+        const hint = timeEl.nextElementSibling;
+        if (hint) hint.remove();
+    }
+
+    // ── 2. Jitsi link generator button ───────────────────────────────────────
+    const genBtn  = document.getElementById('generate-btn');
+    const linkEl  = document.getElementById('meeting_link');
+    if (genBtn && linkEl) {
+        genBtn.addEventListener('click', function () {
+            genBtn.disabled    = true;
+            genBtn.textContent = '…';
+            fetch("{{ url_for('scheduling.generate_link') }}", { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    linkEl.value       = data.link;
+                    genBtn.textContent = '✅ Generated';
+                })
+                .catch(function () {
+                    genBtn.textContent = '⚡ Generate';
+                    genBtn.disabled    = false;
+                });
+        });
+    }
+
+})();
+</script>
+
+{% endblock %}

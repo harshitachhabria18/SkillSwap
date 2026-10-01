@@ -40,6 +40,11 @@
                             {% elif notif.type == 'swap_accepted' %}✅
                             {% elif notif.type == 'swap_rejected' %}❌
                             {% elif notif.type == 'swap_completed' %}🎉
+                            {% elif notif.type == 'new_message' %}💬
+                            {% elif notif.type == 'session_proposed' %}📅
+                            {% elif notif.type == 'session_confirmed' %}✅
+                            {% elif notif.type == 'session_declined' %}❌
+                            {% elif notif.type == 'session_cancelled' %}🚫
                             {% else %}🔔
                             {% endif %}
                         </span>
