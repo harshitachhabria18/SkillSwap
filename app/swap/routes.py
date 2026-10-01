@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import current_user, login_required
 from app import db
 from app.models import User, UserSkills, Skills, SwapRequest, Feedback
+from app.notifications import create_notification
 from sqlalchemy import or_, func
 
 swap_bp = Blueprint('swap', __name__, url_prefix='/swap', template_folder='templates')
@@ -172,6 +173,15 @@ def request_swap(user_id):
         db.session.add(swap_req)
         db.session.commit()
 
+        # Notify the receiver that a new swap request has arrived
+        create_notification(
+            user_id    = receiver.id,
+            notif_type = 'swap_received',
+            message    = f'{current_user.name} sent you a swap request.',
+            link       = '/swap/requests',
+            ref_id     = swap_req.id,
+        )
+
         flash('Swap request sent successfully!', 'success')
         return redirect(url_for('swap.view_profile', user_id=user_id))
 
@@ -223,6 +233,16 @@ def accept_request(request_id):
         return redirect(url_for('swap.swap_requests'))
     swap_req.status = 'Accepted'
     db.session.commit()
+
+    # Notify the original sender that their request was accepted
+    create_notification(
+        user_id    = swap_req.sender_id,
+        notif_type = 'swap_accepted',
+        message    = f'{current_user.name} accepted your swap request.',
+        link       = '/swap/requests',
+        ref_id     = swap_req.id,
+    )
+
     flash('Request accepted!', 'success')
     return redirect(url_for('swap.swap_requests'))
 
@@ -236,6 +256,16 @@ def reject_request(request_id):
         return redirect(url_for('swap.swap_requests'))
     swap_req.status = 'Rejected'
     db.session.commit()
+
+    # Notify the original sender that their request was rejected
+    create_notification(
+        user_id    = swap_req.sender_id,
+        notif_type = 'swap_rejected',
+        message    = f'{current_user.name} declined your swap request.',
+        link       = '/swap/requests',
+        ref_id     = swap_req.id,
+    )
+
     flash('Request rejected.', 'info')
     return redirect(url_for('swap.swap_requests'))
 
@@ -249,6 +279,21 @@ def complete_request(request_id):
         return redirect(url_for('swap.swap_requests'))
     swap_req.status = 'Completed'
     db.session.commit()
+
+    # Notify the OTHER person in the swap (not the one who clicked the button)
+    other_user_id = (
+        swap_req.sender_id
+        if current_user.id == swap_req.receiver_id
+        else swap_req.receiver_id
+    )
+    create_notification(
+        user_id    = other_user_id,
+        notif_type = 'swap_completed',
+        message    = f'{current_user.name} marked your swap as completed.',
+        link       = '/swap/requests',
+        ref_id     = swap_req.id,
+    )
+
     flash('Swap marked as completed!', 'success')
     return redirect(url_for('swap.swap_requests'))
 
