@@ -120,4 +120,38 @@ class Message(db.Model):
 
     __table_args__ = (
         db.Index('ix_message_swap_created', 'swap_request_id', 'created_at'),
-    )
+    )
+
+
+class SwapSession(db.Model):
+    """
+    One row = one proposed/confirmed session between the two swap participants.
+
+    Flow:
+        Either person proposes a time  → status = 'Proposed'
+        The OTHER person confirms       → status = 'Confirmed'
+        The OTHER person declines       → status = 'Declined'  (can propose again)
+        Either person cancels           → status = 'Cancelled' (can propose again)
+
+    Only one 'Proposed' or 'Confirmed' session is allowed per swap at a time
+    (enforced in the route, not the DB).
+
+    start_time is stored in UTC. Conversion to the user's local timezone
+    happens in the browser via JavaScript.
+    """
+    __tablename__ = 'swap_session'
+
+    id               = db.Column(db.Integer, primary_key=True)
+    swap_request_id  = db.Column(db.Integer, db.ForeignKey('swap_request.id'),
+                                 nullable=False, index=True)
+    proposed_by_id   = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    start_time       = db.Column(db.DateTime, nullable=False)   # stored UTC
+    duration_minutes = db.Column(db.Integer, nullable=False, default=60)
+    meeting_link     = db.Column(db.String(500), nullable=True)
+    notes            = db.Column(db.String(500), nullable=True)
+    status           = db.Column(db.String(20), nullable=False, default='Proposed')
+    created_at       = db.Column(db.DateTime, default=db.func.now())
+
+    proposer     = db.relationship('User', backref='proposed_sessions')
+    swap_request = db.relationship('SwapRequest', backref='sessions')
+
