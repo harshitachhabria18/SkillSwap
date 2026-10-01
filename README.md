@@ -167,5 +167,64 @@ Visit [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser
 
 ---
 
+## 🔑 Environment Variables
 
+| Variable | Required | Description |
+|---|---|---|
+| `SECRET_KEY` | ✅ | Flask secret key — any long random string |
+| `SQLALCHEMY_DATABASE_URI` | ✅ | PostgreSQL connection string |
+| `CLOUDINARY_CLOUD_NAME` | ✅ | Cloudinary cloud name |
+| `CLOUDINARY_API_KEY` | ✅ | Cloudinary API key |
+| `CLOUDINARY_API_SECRET` | ✅ | Cloudinary API secret |
+| `GOOGLE_CLIENT_ID` | ✅ (for OAuth) | From Google Cloud Console |
+| `GOOGLE_CLIENT_SECRET` | ✅ (for OAuth) | From Google Cloud Console |
+| `MAIL_USERNAME` | ✅ (for password reset) | Gmail address used to send reset emails |
+| `MAIL_PASSWORD` | ✅ (for password reset) | Gmail **App Password** (not your Gmail login) |
+| `MAIL_SERVER` | optional | Default: `smtp.gmail.com` |
+| `MAIL_PORT` | optional | Default: `587` |
 
+### Sample `.env` file
+```env
+SECRET_KEY=replace-with-a-long-random-string
+SQLALCHEMY_DATABASE_URI=postgresql://username:password@localhost/skillswap
+
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+GOOGLE_CLIENT_ID=1234567890-abc.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxxxxxxxxxxxx
+
+MAIL_USERNAME=yourname@gmail.com
+MAIL_PASSWORD=abcd efgh ijkl mnop
+```
+
+---
+
+## 🔒 Google OAuth Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create a project → **APIs & Services → Credentials**
+3. Click **Create Credentials → OAuth 2.0 Client ID** → Application type: **Web application**
+4. Under **Authorized redirect URIs**, add:
+
+| Environment | Redirect URI |
+|---|---|
+| Local dev | `http://127.0.0.1:5000/auth/google/callback` |
+| Render (production) | `https://skillswap-nfjm.onrender.com/auth/google/callback` |
+
+> ⚠️ Use `127.0.0.1`, **not** `localhost` — Google treats them differently.
+
+5. Copy the **Client ID** and **Client Secret** into your `.env` file
+6. Promote yourself to admin: `flask make-admin your@email.com`
+
+---
+
+## 📧 Gmail App Password Setup (for password reset emails)
+
+1. Enable **2-Step Verification** on your Google Account
+2. Go to **Google Account → Security → App Passwords**
+3. Generate an app password for **Mail / Windows Computer**
+4. Use the generated 16-character password as `MAIL_PASSWORD` in `.env`
+
+---
