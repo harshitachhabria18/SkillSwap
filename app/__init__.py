@@ -2,7 +2,7 @@ import os
 from flask import Flask
 from dotenv import load_dotenv
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask import redirect, url_for
 from flask_wtf.csrf import CSRFProtect
@@ -68,7 +68,7 @@ def create_app():
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'warning'
 
-    from app.models import User
+    from app.models import User, Notification
 
     # login_user(user) puts user.id into the session, and load_user(user_id) retrieves the full row from the User table using that ID. That full object becomes current_user
     @login_manager.user_loader
@@ -76,14 +76,28 @@ def create_app():
         # fix(6): db.session.get() is the SQLAlchemy 2.0 replacement for Query.get()
         return db.session.get(User, int(user_id))
 
-    # Register blueprints here - they are like mini applications 
+    # Context processor: inject unread notification count into EVERY template automatically.
+    # This is how the navbar bell badge gets its number without every route having to pass it.
+    @app.context_processor
+    def inject_notification_count():
+        if current_user.is_authenticated:
+            count = Notification.query.filter_by(
+                user_id=current_user.id,
+                is_read=False
+            ).count()
+            return {'unread_notification_count': count}
+        return {'unread_notification_count': 0}
+
+    # Register blueprints here - they are like mini applications
     from app.auth.routes import auth_bp
     from app.user.routes import user_bp
     from app.swap.routes import swap_bp
+    from app.notif_routes import notif_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(swap_bp)
+    app.register_blueprint(notif_bp)
 
     @app.route('/')
     def index():

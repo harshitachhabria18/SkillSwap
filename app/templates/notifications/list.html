@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+
+    <!-- Page Title -->
+    <div class="page-banner">
+        <h2>🔔 Notifications</h2>
+        <p>Stay updated on your swap activity.</p>
+    </div>
+
+    <!-- Mark All Read button — only shows when there are unread ones -->
+    {% if notifications %}
+        {% set has_unread = notifications | selectattr('is_read', 'equalto', false) | list %}
+        {% if has_unread %}
+        <div class="d-flex justify-content-end mb-3">
+            <form method="POST" action="{{ url_for('notif.mark_all_read') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-secondary btn-sm">
+                    ✓ Mark all as read
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    {% endif %}
+
+    <!-- Notification List -->
+    {% if notifications %}
+        <div class="list-group mb-4">
+            {% for notif in notifications %}
+            <div class="list-group-item py-3
+                        {% if not notif.is_read %}notif-unread{% endif %}">
+
+                <div class="d-flex justify-content-between align-items-start gap-3">
+
+                    <!-- Icon + Message -->
+                    <div class="d-flex align-items-start gap-3 flex-grow-1">
+                        <span class="notif-icon">
+                            {% if notif.type == 'swap_received' %}📩
+                            {% elif notif.type == 'swap_accepted' %}✅
+                            {% elif notif.type == 'swap_rejected' %}❌
+                            {% elif notif.type == 'swap_completed' %}🎉
+                            {% else %}🔔
+                            {% endif %}
+                        </span>
+                        <div>
+                            <p class="mb-1 notif-message
+                                      {% if not notif.is_read %}fw-semibold{% endif %}">
+                                {{ notif.message }}
+                                {% if notif.count > 1 %}
+                                <span class="badge bg-secondary ms-1">×{{ notif.count }}</span>
+                                {% endif %}
+                            </p>
+                            <small class="text-muted">
+                                {{ notif.created_at.strftime('%d %b %Y, %I:%M %p') if notif.created_at else '' }}
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Mark as read button — only for unread ones -->
+                    <div class="flex-shrink-0">
+                        {% if not notif.is_read %}
+                        <form method="POST"
+                              action="{{ url_for('notif.mark_read', notif_id=notif.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline-success btn-sm">
+                                Mark read →
+                            </button>
+                        </form>
+                        {% else %}
+                        <span class="text-muted small">Read ✓</span>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('notif.list_notifications', page=pagination.prev_num) }}">«</a>
+                </li>
+                {% for p in pagination.iter_pages() %}
+                    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('notif.list_notifications', page=p) }}">{{ p }}</a>
+                    </li>
+                {% endfor %}
+                <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('notif.list_notifications', page=pagination.next_num) }}">»</a>
+                </li>
+            </ul>
+        </nav>
+
+    {% else %}
+        <!-- Empty state -->
+        <div class="empty-state">
+            <div class="icon">🔔</div>
+            <p>You have no notifications yet.<br>
+               They will appear here when someone sends or responds to your swap requests.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
