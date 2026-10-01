@@ -75,6 +75,17 @@
                             </span>
                             {% endif %}
                         </a>
+                        <!-- Schedule button with session status label -->
+                        <a href="{{ url_for('scheduling.view_session', swap_id=req.id) }}"
+                           class="btn btn-outline-info btn-sm mt-1">
+                            {% if session_map.get(req.id) == 'Confirmed' %}
+                                ✅ Session Confirmed
+                            {% elif session_map.get(req.id) == 'Proposed' %}
+                                ⏳ Session Pending
+                            {% else %}
+                                📅 Schedule
+                            {% endif %}
+                        </a>
                     {% elif req.status == 'Rejected' %}
                         <span class="badge bg-danger mb-2 d-block">Rejected</span>
                     {% elif req.status == 'Completed' %}
@@ -175,6 +186,16 @@
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                                 {{ unread_msg_map[req.id] }}
                             </span>
+                            {% endif %}
+                        </a>
+                        <a href="{{ url_for('scheduling.view_session', swap_id=req.id) }}"
+                           class="btn btn-outline-info btn-sm mt-1">
+                            {% if session_map.get(req.id) == 'Confirmed' %}
+                                ✅ Session Confirmed
+                            {% elif session_map.get(req.id) == 'Proposed' %}
+                                ⏳ Session Pending
+                            {% else %}
+                                📅 Schedule
                             {% endif %}
                         </a>
                     {% elif req.status == 'Rejected' %}

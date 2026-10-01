@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import current_user, login_required
 from app import db
-from app.models import User, UserSkills, Skills, SwapRequest, Feedback, Message
+from app.models import User, UserSkills, Skills, SwapRequest, Feedback, Message, SwapSession
 from app.notifications import create_notification
 from sqlalchemy import or_, func
 
@@ -238,6 +238,29 @@ def swap_requests():
     else:
         unread_msg_map = {}
 
+    # Build a dict {swap_id: session_status} for Accepted swaps on this page.
+    # 'Proposed', 'Confirmed', or None — used to label the Schedule button.
+    accepted_ids = [
+        r.id for r in (received_pagination.items + sent_pagination.items)
+        if r.status == 'Accepted'
+    ]
+    if accepted_ids:
+        session_rows = (
+            SwapSession.query
+            .filter(
+                SwapSession.swap_request_id.in_(accepted_ids),
+                SwapSession.status.in_(['Proposed', 'Confirmed'])
+            )
+            .all()
+        )
+        # Keep only the latest active session per swap
+        session_map = {}
+        for s in session_rows:
+            if s.swap_request_id not in session_map:
+                session_map[s.swap_request_id] = s.status
+    else:
+        session_map = {}
+
     return render_template(
         'swap/swap_requests.html',
         received=received_pagination.items,
@@ -246,6 +269,7 @@ def swap_requests():
         sent_pagination=sent_pagination,
         selected_status=status_filter,
         unread_msg_map=unread_msg_map,
+        session_map=session_map,
     )
 
 
