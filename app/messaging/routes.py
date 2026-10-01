@@ -1,7 +1,6 @@
 from flask import (Blueprint, render_template, redirect, url_for,
                    flash, request, jsonify, abort)
 from flask_login import login_required, current_user
-from markupsafe import escape
 from datetime import datetime, timezone
 from app import db
 from app.models import SwapRequest, Message, Notification
@@ -113,13 +112,14 @@ def send_message(swap_id):
         flash('Message too long — maximum 1000 characters.', 'warning')
         return redirect(url_for('messaging.chat', swap_id=swap_id))
 
-    # Escape user content before storing (defence-in-depth alongside Jinja auto-escape)
-    safe_body = str(escape(body))
-
+    # Store body as-is — Jinja2 auto-escapes {{ msg.body }} on render,
+    # and JS uses textContent (not innerHTML) so no XSS risk either.
+    # (Previously used markupsafe.escape() here which caused double-escaping:
+    #  what's → what&#39;s stored in DB → shown literally as what&#39;s in the chat)
     msg = Message(
         swap_request_id=swap_id,
         sender_id=current_user.id,
-        body=safe_body,
+        body=body,
         is_read=False,
     )
     db.session.add(msg)
