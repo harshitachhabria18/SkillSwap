@@ -9,15 +9,20 @@
         <div class="card p-3 mb-3" style="border-radius:12px;">
             <p class="text-muted fw-semibold mb-2" style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;">Admin Panel</p>
             <nav class="nav flex-column gap-1">
-                <a class="nav-link px-2 py-1 rounded {% if request.endpoint == 'admin.dashboard' %}bg-dark text-white{% else %}text-dark{% endif %}"
+                <a class="nav-link px-2 py-1 rounded {% if request.endpoint == 'admin.dashboard' %}bg-dark text-white{% endif %}"
+                   style="{% if request.endpoint != 'admin.dashboard' %}color:#212529 !important;{% endif %}"
                    href="{{ url_for('admin.dashboard') }}">📊 Dashboard</a>
-                <a class="nav-link px-2 py-1 rounded {% if request.endpoint == 'admin.users' %}bg-dark text-white{% else %}text-dark{% endif %}"
+                <a class="nav-link px-2 py-1 rounded {% if request.endpoint == 'admin.users' %}bg-dark text-white{% endif %}"
+                   style="{% if request.endpoint != 'admin.users' %}color:#212529 !important;{% endif %}"
                    href="{{ url_for('admin.users') }}">👥 Users</a>
-                <a class="nav-link px-2 py-1 rounded {% if request.endpoint == 'admin.skills' %}bg-dark text-white{% else %}text-dark{% endif %}"
+                <a class="nav-link px-2 py-1 rounded {% if request.endpoint == 'admin.skills' %}bg-dark text-white{% endif %}"
+                   style="{% if request.endpoint != 'admin.skills' %}color:#212529 !important;{% endif %}"
                    href="{{ url_for('admin.skills') }}">🎯 Skills</a>
-                <a class="nav-link px-2 py-1 rounded {% if request.endpoint == 'admin.swaps' %}bg-dark text-white{% else %}text-dark{% endif %}"
+                <a class="nav-link px-2 py-1 rounded {% if request.endpoint == 'admin.swaps' %}bg-dark text-white{% endif %}"
+                   style="{% if request.endpoint != 'admin.swaps' %}color:#212529 !important;{% endif %}"
                    href="{{ url_for('admin.swaps') }}">🔄 Swap Requests</a>
-                <a class="nav-link px-2 py-1 rounded {% if request.endpoint == 'admin.feedback' %}bg-dark text-white{% else %}text-dark{% endif %}"
+                <a class="nav-link px-2 py-1 rounded {% if request.endpoint == 'admin.feedback' %}bg-dark text-white{% endif %}"
+                   style="{% if request.endpoint != 'admin.feedback' %}color:#212529 !important;{% endif %}"
                    href="{{ url_for('admin.feedback') }}">⭐ Feedback</a>
             </nav>
         </div>
