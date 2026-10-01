@@ -94,12 +94,14 @@ def create_app():
     from app.swap.routes import swap_bp
     from app.notif_routes import notif_bp
     from app.messaging.routes import messaging_bp
+    from app.scheduling.routes import scheduling_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(user_bp)
     app.register_blueprint(swap_bp)
     app.register_blueprint(notif_bp)
     app.register_blueprint(messaging_bp)
+    app.register_blueprint(scheduling_bp)
 
     @app.route('/')
     def index():

@@ -791,4 +791,63 @@ hr { border: none; border-top: 1.5px solid var(--warm-tan); margin: 1.5rem 0; }
   border-radius: 10px;
   padding: 0.75rem 1rem;
 }
+
+/* ── Session Scheduling ── */
+
+/* Page header bar (same as chat header) */
+.session-header {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+/* Main card */
+.session-card {
+  border: 1px solid #dee2e6;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+
+/* Detail rows inside the session card */
+.session-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.session-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+.session-icon {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+
+/* Status badges */
+.session-badge-proposed {
+  background: #f0ad4e;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.4em 0.9em;
+}
+.session-badge-confirmed {
+  background: #28a745;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.4em 0.9em;
+}
+
+/* Join meeting button */
+.session-join-btn {
+  font-weight: 600;
+  padding: 0.45rem 1.1rem;
+  border-radius: 8px;
+}
+
 
