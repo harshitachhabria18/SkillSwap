@@ -143,7 +143,7 @@ def google_callback():
             db.session.commit()
             login_user(user)
             flash('Welcome to SkillSwap! Please complete your profile.', 'success')
-            return redirect(url_for('user.edit_profile'))
+            return redirect(url_for('user.home'))
 
     # Check ban
     if not user.is_active_account:
