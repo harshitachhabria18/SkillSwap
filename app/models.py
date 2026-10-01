@@ -90,4 +90,34 @@ class Notification(db.Model):
     # Composite index — fast lookup for the unread-count badge and collapse check
     __table_args__ = (
         db.Index('ix_notification_user_is_read', 'user_id', 'is_read'),
+    )
+
+
+class Message(db.Model):
+    """
+    One row = one chat message between the two people in a swap.
+
+    - swap_request_id : which swap conversation this message belongs to
+    - sender_id       : who wrote it
+    - body            : the text (capped at 1000 chars)
+    - is_read         : False until the recipient opens the chat
+    - created_at      : used for ordering and for JS polling ("give me messages after X")
+
+    Composite index on (swap_request_id, created_at) makes fetching
+    all messages for a chat — in order — a single fast indexed query.
+    """
+    __tablename__ = 'message'
+
+    id               = db.Column(db.Integer, primary_key=True)
+    swap_request_id  = db.Column(db.Integer, db.ForeignKey('swap_request.id'), nullable=False)
+    sender_id        = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    body             = db.Column(db.String(1000), nullable=False)
+    is_read          = db.Column(db.Boolean, default=False, nullable=False)
+    created_at       = db.Column(db.DateTime, default=db.func.now())
+
+    sender      = db.relationship('User', backref='messages_sent')
+    swap_request = db.relationship('SwapRequest', backref='messages')
+
+    __table_args__ = (
+        db.Index('ix_message_swap_created', 'swap_request_id', 'created_at'),
     )
