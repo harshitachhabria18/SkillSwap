@@ -31,6 +31,19 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('swap.swap_requests') }}">Swap Request</a>
                     </li>
+                    <!-- Notification bell — shows unread count badge -->
+                    <li class="nav-item">
+                        <a class="nav-link notif-bell-link position-relative"
+                           href="{{ url_for('notif.list_notifications') }}"
+                           title="Notifications">
+                            🔔
+                            {% if unread_notification_count > 0 %}
+                            <span class="notif-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ unread_notification_count if unread_notification_count < 100 else '99+' }}
+                            </span>
+                            {% endif %}
+                        </a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link d-flex align-items-center" href="{{ url_for('user.home', user_id=current_user.id) }}">
                             <img src="{% if current_user.profile_photo and current_user.profile_photo.startswith('http') %}{{ current_user.profile_photo }}{% elif current_user.profile_photo %}{{ url_for('static', filename='images/' + current_user.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
