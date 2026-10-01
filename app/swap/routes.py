@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import current_user, login_required
 from app import db
-from app.models import User, UserSkills, Skills, SwapRequest, Feedback
+from app.models import User, UserSkills, Skills, SwapRequest, Feedback, Message
 from app.notifications import create_notification
 from sqlalchemy import or_, func
 
@@ -214,13 +214,38 @@ def swap_requests():
     sent_pagination = sent_query.order_by(SwapRequest.timestamp.desc())\
                                 .paginate(page=sent_page, per_page=4, error_out=False)
 
+    # Build a dict {swap_id: unread_count} for the Message button badges.
+    # ONE query covers all swaps on this page — no N+1 problem.
+    all_swap_ids = (
+        [r.id for r in received_pagination.items] +
+        [r.id for r in sent_pagination.items]
+    )
+    if all_swap_ids:
+        unread_rows = (
+            db.session.query(
+                Message.swap_request_id,
+                func.count(Message.id).label('cnt')
+            )
+            .filter(
+                Message.swap_request_id.in_(all_swap_ids),
+                Message.sender_id != current_user.id,
+                Message.is_read == False
+            )
+            .group_by(Message.swap_request_id)
+            .all()
+        )
+        unread_msg_map = {row.swap_request_id: row.cnt for row in unread_rows}
+    else:
+        unread_msg_map = {}
+
     return render_template(
         'swap/swap_requests.html',
         received=received_pagination.items,
         sent=sent_pagination.items,
         received_pagination=received_pagination,
         sent_pagination=sent_pagination,
-        selected_status=status_filter
+        selected_status=status_filter,
+        unread_msg_map=unread_msg_map,
     )
 
 

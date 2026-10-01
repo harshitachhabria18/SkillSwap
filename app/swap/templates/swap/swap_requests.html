@@ -65,6 +65,16 @@
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-primary btn-sm">Mark as Complete</button>
                         </form>
+                        <!-- Message button with unread badge -->
+                        <a href="{{ url_for('messaging.chat', swap_id=req.id) }}"
+                           class="btn btn-outline-primary btn-sm mt-1 position-relative">
+                            💬 Message
+                            {% if unread_msg_map.get(req.id) %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ unread_msg_map[req.id] }}
+                            </span>
+                            {% endif %}
+                        </a>
                     {% elif req.status == 'Rejected' %}
                         <span class="badge bg-danger mb-2 d-block">Rejected</span>
                     {% elif req.status == 'Completed' %}
@@ -80,6 +90,16 @@
                         {% else %}
                             <span class="text-muted small">Feedback given ✓</span>
                         {% endif %}
+                        <!-- Message button for completed swaps too -->
+                        <a href="{{ url_for('messaging.chat', swap_id=req.id) }}"
+                           class="btn btn-outline-secondary btn-sm mt-1 position-relative">
+                            💬 Message
+                            {% if unread_msg_map.get(req.id) %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ unread_msg_map[req.id] }}
+                            </span>
+                            {% endif %}
+                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -148,6 +168,15 @@
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-primary btn-sm">Mark as Complete</button>
                         </form>
+                        <a href="{{ url_for('messaging.chat', swap_id=req.id) }}"
+                           class="btn btn-outline-primary btn-sm mt-1 position-relative">
+                            💬 Message
+                            {% if unread_msg_map.get(req.id) %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ unread_msg_map[req.id] }}
+                            </span>
+                            {% endif %}
+                        </a>
                     {% elif req.status == 'Rejected' %}
                         <span class="badge bg-danger">Rejected</span>
                     {% elif req.status == 'Completed' %}
@@ -163,6 +192,15 @@
                         {% else %}
                             <span class="text-muted small">Feedback given ✓</span>
                         {% endif %}
+                        <a href="{{ url_for('messaging.chat', swap_id=req.id) }}"
+                           class="btn btn-outline-secondary btn-sm mt-1 position-relative">
+                            💬 Message
+                            {% if unread_msg_map.get(req.id) %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ unread_msg_map[req.id] }}
+                            </span>
+                            {% endif %}
+                        </a>
                     {% endif %}
                 </div>
             </div>
