@@ -4,3 +4,9 @@ __pycache__/
 *.pyc
 .env
 instance/site.db
+
+backup.sql
+*.mp4
+
+backup.sql
+*.mp4
