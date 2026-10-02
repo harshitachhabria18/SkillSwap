@@ -31,6 +31,27 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('swap.swap_requests') }}">Swap Request</a>
                     </li>
+                    <!-- Notification bell — shows unread count badge -->
+                    <li class="nav-item">
+                        <a class="nav-link notif-bell-link position-relative"
+                           href="{{ url_for('notif.list_notifications') }}"
+                           title="Notifications">
+                            🔔
+                            {% if unread_notification_count > 0 %}
+                            <span class="notif-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ unread_notification_count if unread_notification_count < 100 else '99+' }}
+                            </span>
+                            {% endif %}
+                        </a>
+                    </li>
+                     <!-- Admin link - only visible to admins -->
+                     {% if current_user.is_admin %}
+                     <li class="nav-item">
+                         <a class="nav-link fw-semibold"
+                            href="{{ url_for('admin.dashboard') }}"
+                            style="color:#fbbf24;">&#9881; Admin</a>
+                     </li>
+                     {% endif %}
                     <li class="nav-item">
                         <a class="nav-link d-flex align-items-center" href="{{ url_for('user.home', user_id=current_user.id) }}">
                             <img src="{% if current_user.profile_photo and current_user.profile_photo.startswith('http') %}{{ current_user.profile_photo }}{% elif current_user.profile_photo %}{{ url_for('static', filename='images/' + current_user.profile_photo) }}{% else %}{{ url_for('static', filename='images/default_profile.png') }}{% endif %}"
@@ -41,7 +62,10 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link text-danger" href="{{ url_for('auth.logout') }}">Logout</a>
+                        <form method="POST" action="{{ url_for('auth.logout') }}" class="d-inline m-0">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="nav-link text-danger btn btn-link p-0" style="border:none;background:none;">Logout</button>
+                        </form>
                     </li>
                     {% else %}
                     <li class="nav-item">

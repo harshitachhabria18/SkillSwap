@@ -679,5 +679,175 @@ hr { border: none; border-top: 1.5px solid var(--warm-tan); margin: 1.5rem 0; }
       .navbar-brand { font-size: 0.85rem; }
   }
 
-  
-  
+
+/* ── Notifications ── */
+
+/* Bell icon in navbar */
+.notif-bell-link {
+  font-size: 1.1rem;
+  padding: 0.45rem 0.85rem !important;
+}
+
+/* Red badge counter on the bell */
+.notif-badge {
+  font-size: 0.62rem;
+  padding: 0.28em 0.48em;
+  min-width: 18px;
+  line-height: 1.1;
+  transform: translate(-30%, -30%) !important; /* nudge badge to sit on top-right of bell */
+}
+
+/* Unread notification row — light teal highlight */
+.notif-unread {
+  background: rgba(42, 106, 127, 0.06);
+  border-left: 3px solid var(--teal) !important;
+}
+
+/* Notification message text */
+.notif-message {
+  font-size: 0.93rem;
+  color: var(--text);
+  margin-bottom: 0.15rem;
+}
+
+/* Emoji icon column */
+.notif-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+/* ── Chat / Messaging ── */
+
+/* Scrollable message area */
+.chat-box {
+  height: 420px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  padding: 1.1rem 1rem;
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  scroll-behavior: smooth;
+}
+
+/* Wrapper that controls left/right alignment */
+.chat-bubble-wrap {
+  display: flex;
+  flex-direction: column;
+  max-width: 72%;
+}
+.chat-bubble-wrap.mine   { align-self: flex-end;  align-items: flex-end; }
+.chat-bubble-wrap.theirs { align-self: flex-start; align-items: flex-start; }
+
+/* The actual bubble */
+.chat-bubble {
+  padding: 0.55rem 0.9rem;
+  border-radius: 14px;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+.mine   .chat-bubble { background: var(--teal);  color: #fff; border-bottom-right-radius: 4px; }
+.theirs .chat-bubble { background: #e9ecef;       color: #222; border-bottom-left-radius: 4px; }
+
+/* Timestamp / sender line below bubble */
+.chat-meta {
+  font-size: 0.72rem;
+  color: #868e96;
+  margin-top: 0.18rem;
+  padding: 0 0.25rem;
+}
+
+/* Send form row */
+.chat-send-form { margin-top: 0.5rem; }
+
+/* Textarea */
+.chat-input {
+  resize: none;
+  border-radius: 10px;
+  font-size: 0.93rem;
+  padding: 0.6rem 0.8rem;
+  line-height: 1.4;
+}
+.chat-input:focus { box-shadow: 0 0 0 0.2rem rgba(42,106,127,.25); border-color: var(--teal); }
+
+/* Send button */
+.chat-send-btn {
+  height: 72px;
+  min-width: 84px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* Chat page header bar */
+.chat-header {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+/* ── Session Scheduling ── */
+
+/* Page header bar (same as chat header) */
+.session-header {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+}
+
+/* Main card */
+.session-card {
+  border: 1px solid #dee2e6;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+
+/* Detail rows inside the session card */
+.session-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.session-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.94rem;
+  line-height: 1.5;
+}
+.session-icon {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  margin-top: 0.05rem;
+}
+
+/* Status badges */
+.session-badge-proposed {
+  background: #f0ad4e;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.4em 0.9em;
+}
+.session-badge-confirmed {
+  background: #28a745;
+  color: #fff;
+  font-weight: 600;
+  padding: 0.4em 0.9em;
+}
+
+/* Join meeting button */
+.session-join-btn {
+  font-weight: 600;
+  padding: 0.45rem 1.1rem;
+  border-radius: 8px;
+}
+
+

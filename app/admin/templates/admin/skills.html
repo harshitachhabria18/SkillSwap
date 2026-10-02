@@ -1,0 +1,76 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">🎯 Skills</h4>
+    <span class="text-muted small">{{ skills|length }} skill{{ 's' if skills|length != 1 }}</span>
+</div>
+
+<!-- Add new skill form -->
+<div class="card p-3 mb-4 border-0 shadow-sm" style="border-radius:12px;">
+    <h6 class="mb-3">Add New Skill</h6>
+    <form method="POST" action="{{ url_for('admin.add_skill') }}" class="d-flex gap-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="text" name="name" class="form-control form-control-sm"
+               placeholder="e.g. Machine Learning" required style="max-width:280px;">
+        <button type="submit" class="btn btn-sm btn-success">+ Add Skill</button>
+    </form>
+</div>
+
+<!-- Skills table -->
+<div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+<table class="table table-hover mb-0 align-middle">
+    <thead style="background:#f8f9fa;">
+        <tr>
+            <th>Skill Name</th>
+            <th class="text-center">User Profiles</th>
+            <th class="text-center">In Swaps</th>
+            <th style="width:280px;">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for skill in skills %}
+        {% set user_uses  = usage_counts.get(skill.id, 0) %}
+        {% set swap_uses  = swap_offered.get(skill.id, 0) + swap_wanted.get(skill.id, 0) %}
+        {% set total_uses = user_uses + swap_uses %}
+        <tr>
+            <td><strong>{{ skill.name }}</strong></td>
+            <td class="text-center">
+                <span class="badge bg-secondary">{{ user_uses }}</span>
+            </td>
+            <td class="text-center">
+                <span class="badge bg-secondary">{{ swap_uses }}</span>
+            </td>
+            <td>
+                <div class="d-flex gap-2 flex-wrap">
+                    <!-- Rename inline form -->
+                    <form method="POST"
+                          action="{{ url_for('admin.rename_skill', skill_id=skill.id) }}"
+                          class="d-flex gap-1">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="text" name="new_name" class="form-control form-control-sm"
+                               placeholder="{{ skill.name }}" required style="width:130px;">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm">Rename</button>
+                    </form>
+                    <!-- Delete — only if not used anywhere -->
+                    {% if total_uses == 0 %}
+                        <form method="POST"
+                              action="{{ url_for('admin.delete_skill', skill_id=skill.id) }}"
+                              onsubmit="return confirm('Delete skill &quot;{{ skill.name }}&quot;? This cannot be undone.')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                        </form>
+                    {% else %}
+                        <button class="btn btn-outline-danger btn-sm" disabled
+                                title="In use — cannot delete">Delete</button>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    {% else %}
+        <tr><td colspan="4" class="text-center text-muted py-4">No skills yet.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

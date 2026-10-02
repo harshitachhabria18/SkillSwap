@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import current_user, login_required
 from app import db
-from app.models import User, UserSkills, Skills, SwapRequest, Feedback
-from sqlalchemy import or_
+from app.models import User, UserSkills, Skills, SwapRequest, Feedback, Message, SwapSession
+from app.notifications import create_notification
+from sqlalchemy import or_, func
 
 swap_bp = Blueprint('swap', __name__, url_prefix='/swap', template_folder='templates')
 
@@ -32,26 +33,50 @@ def home():
 
     pagination = users_query.paginate(page=page, per_page=4, error_out=False)
 
+    # fix(9): batch-load skills and ratings in bulk to eliminate N+1 queries
+    user_ids = [u.id for u in pagination.items]
+
+    # One query: all UserSkills rows (+ joined skill name) for this page's users
+    all_user_skills = (
+        db.session.query(UserSkills, Skills.name)
+        .join(Skills, Skills.id == UserSkills.skills_id)
+        .filter(UserSkills.user_id.in_(user_ids))
+        .all()
+    )
+
+    # Build lookup dicts keyed by user_id
+    offered_map = {}  # {user_id: [skill_name, ...]}
+    wanted_map  = {}  # {user_id: [skill_name, ...]}
+    for us, skill_name in all_user_skills:
+        if us.skill_type == 'offered':
+            offered_map.setdefault(us.user_id, []).append(skill_name)
+        else:
+            wanted_map.setdefault(us.user_id, []).append(skill_name)
+
+    # One query: avg rating and review count per user (for this page's users)
+    rating_rows = (
+        db.session.query(
+            Feedback.reviewee_id,
+            func.avg(Feedback.rating).label('avg_rating'),
+            func.count(Feedback.id).label('review_count'),
+        )
+        .filter(Feedback.reviewee_id.in_(user_ids))
+        .group_by(Feedback.reviewee_id)
+        .all()
+    )
+    rating_map = {row.reviewee_id: row for row in rating_rows}  # {user_id: row}
+
     user_data = []
     for user in pagination.items:
-        offered = UserSkills.query.filter_by(user_id=user.id, skill_type='offered').all()
-        wanted = UserSkills.query.filter_by(user_id=user.id, skill_type='wanted').all()
-
-        # Calculate BEFORE append
-        feedbacks = Feedback.query.filter_by(reviewee_id=user.id).all()
-        avg_rating = None
-        if feedbacks:
-            avg_rating = round(sum(f.rating for f in feedbacks) / len(feedbacks), 1)
-
+        r = rating_map.get(user.id)
+        avg_rating = round(float(r.avg_rating), 1) if r else None
         user_data.append({
             'user': user,
-            'skills_offered': [us.skill.name for us in offered],
-            'skills_wanted': [us.skill.name for us in wanted],
-            'avg_rating': avg_rating,
-            'review_count': len(feedbacks)
+            'skills_offered': offered_map.get(user.id, []),
+            'skills_wanted':  wanted_map.get(user.id, []),
+            'avg_rating':    avg_rating,
+            'review_count':  r.review_count if r else 0,
         })
-
-
 
     return render_template(
         'swap/browse.html',
@@ -102,6 +127,11 @@ def request_swap(user_id):
         flash('You cannot send a swap request to yourself.', 'warning')
         return redirect(url_for('swap.home'))
 
+    # fix(4): block swap requests to users with a private profile
+    if receiver.profile_visibility != 'Public':
+        flash('This user has a private profile and cannot receive swap requests.', 'warning')
+        return redirect(url_for('swap.home'))
+
     # Get current user's offered skills (what they can offer)
     my_offered = UserSkills.query.filter_by(
         user_id=current_user.id, skill_type='offered'
@@ -143,6 +173,15 @@ def request_swap(user_id):
         db.session.add(swap_req)
         db.session.commit()
 
+        # Notify the receiver that a new swap request has arrived
+        create_notification(
+            user_id    = receiver.id,
+            notif_type = 'swap_received',
+            message    = f'{current_user.name} sent you a swap request.',
+            link       = '/swap/requests',
+            ref_id     = swap_req.id,
+        )
+
         flash('Swap request sent successfully!', 'success')
         return redirect(url_for('swap.view_profile', user_id=user_id))
 
@@ -157,21 +196,70 @@ def request_swap(user_id):
 @login_required
 def swap_requests():
     status_filter = request.args.get('status', '').strip()
-    page = request.args.get('page', 1, type=int)
+    # fix(7): separate pagination params so the two lists scroll independently
+    received_page = request.args.get('received_page', 1, type=int)
+    sent_page = request.args.get('sent_page', 1, type=int)
 
     # Received requests (others sent to you)
     received_query = SwapRequest.query.filter_by(receiver_id=current_user.id)
     if status_filter:
         received_query = received_query.filter_by(status=status_filter)
     received_pagination = received_query.order_by(SwapRequest.timestamp.desc())\
-                                        .paginate(page=page, per_page=4, error_out=False)
+                                        .paginate(page=received_page, per_page=4, error_out=False)
 
     # Sent requests (you sent to others)
     sent_query = SwapRequest.query.filter_by(sender_id=current_user.id)
     if status_filter:
         sent_query = sent_query.filter_by(status=status_filter)
     sent_pagination = sent_query.order_by(SwapRequest.timestamp.desc())\
-                                .paginate(page=page, per_page=4, error_out=False)
+                                .paginate(page=sent_page, per_page=4, error_out=False)
+
+    # Build a dict {swap_id: unread_count} for the Message button badges.
+    # ONE query covers all swaps on this page — no N+1 problem.
+    all_swap_ids = (
+        [r.id for r in received_pagination.items] +
+        [r.id for r in sent_pagination.items]
+    )
+    if all_swap_ids:
+        unread_rows = (
+            db.session.query(
+                Message.swap_request_id,
+                func.count(Message.id).label('cnt')
+            )
+            .filter(
+                Message.swap_request_id.in_(all_swap_ids),
+                Message.sender_id != current_user.id,
+                Message.is_read == False
+            )
+            .group_by(Message.swap_request_id)
+            .all()
+        )
+        unread_msg_map = {row.swap_request_id: row.cnt for row in unread_rows}
+    else:
+        unread_msg_map = {}
+
+    # Build a dict {swap_id: session_status} for Accepted swaps on this page.
+    # 'Proposed', 'Confirmed', or None — used to label the Schedule button.
+    accepted_ids = [
+        r.id for r in (received_pagination.items + sent_pagination.items)
+        if r.status == 'Accepted'
+    ]
+    if accepted_ids:
+        session_rows = (
+            SwapSession.query
+            .filter(
+                SwapSession.swap_request_id.in_(accepted_ids),
+                SwapSession.status.in_(['Proposed', 'Confirmed'])
+            )
+            .all()
+        )
+        # Keep only the latest active session per swap
+        session_map = {}
+        for s in session_rows:
+            if s.swap_request_id not in session_map:
+                session_map[s.swap_request_id] = s.status
+    else:
+        session_map = {}
 
     return render_template(
         'swap/swap_requests.html',
@@ -179,7 +267,9 @@ def swap_requests():
         sent=sent_pagination.items,
         received_pagination=received_pagination,
         sent_pagination=sent_pagination,
-        selected_status=status_filter
+        selected_status=status_filter,
+        unread_msg_map=unread_msg_map,
+        session_map=session_map,
     )
 
 
@@ -192,6 +282,16 @@ def accept_request(request_id):
         return redirect(url_for('swap.swap_requests'))
     swap_req.status = 'Accepted'
     db.session.commit()
+
+    # Notify the original sender that their request was accepted
+    create_notification(
+        user_id    = swap_req.sender_id,
+        notif_type = 'swap_accepted',
+        message    = f'{current_user.name} accepted your swap request.',
+        link       = '/swap/requests',
+        ref_id     = swap_req.id,
+    )
+
     flash('Request accepted!', 'success')
     return redirect(url_for('swap.swap_requests'))
 
@@ -205,6 +305,16 @@ def reject_request(request_id):
         return redirect(url_for('swap.swap_requests'))
     swap_req.status = 'Rejected'
     db.session.commit()
+
+    # Notify the original sender that their request was rejected
+    create_notification(
+        user_id    = swap_req.sender_id,
+        notif_type = 'swap_rejected',
+        message    = f'{current_user.name} declined your swap request.',
+        link       = '/swap/requests',
+        ref_id     = swap_req.id,
+    )
+
     flash('Request rejected.', 'info')
     return redirect(url_for('swap.swap_requests'))
 
@@ -218,6 +328,21 @@ def complete_request(request_id):
         return redirect(url_for('swap.swap_requests'))
     swap_req.status = 'Completed'
     db.session.commit()
+
+    # Notify the OTHER person in the swap (not the one who clicked the button)
+    other_user_id = (
+        swap_req.sender_id
+        if current_user.id == swap_req.receiver_id
+        else swap_req.receiver_id
+    )
+    create_notification(
+        user_id    = other_user_id,
+        notif_type = 'swap_completed',
+        message    = f'{current_user.name} marked your swap as completed.',
+        link       = '/swap/requests',
+        ref_id     = swap_req.id,
+    )
+
     flash('Swap marked as completed!', 'success')
     return redirect(url_for('swap.swap_requests'))
 
@@ -261,11 +386,20 @@ def leave_feedback(request_id):
             flash('Please select a rating.', 'danger')
             return redirect(url_for('swap.leave_feedback', request_id=request_id))
 
+        # fix(3): validate rating is a whole number between 1 and 5
+        try:
+            rating = int(rating)
+            if rating < 1 or rating > 5:
+                raise ValueError
+        except ValueError:
+            flash('Rating must be a number between 1 and 5.', 'danger')
+            return redirect(url_for('swap.leave_feedback', request_id=request_id))
+
         feedback = Feedback(
             swap_request_id=request_id,
             reviewer_id=current_user.id,
             reviewee_id=reviewee.id,
-            rating=int(rating),
+            rating=rating,
             comment=comment
         )
         db.session.add(feedback)

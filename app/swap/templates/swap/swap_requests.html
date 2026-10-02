@@ -52,16 +52,41 @@
                     {% if req.status == 'Pending' %}
                         <span class="badge bg-warning text-dark mb-2 d-block">Pending</span>
                         <form method="POST" action="{{ url_for('swap.accept_request', request_id=req.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-success btn-sm">Accept</button>
                         </form>
                         <form method="POST" action="{{ url_for('swap.reject_request', request_id=req.id) }}" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-danger btn-sm">Reject</button>
                         </form>
                     {% elif req.status == 'Accepted' %}
-                        <span class="badge bg-success mb-2 d-block">Accepted</span>
-                        <form method="POST" action="{{ url_for('swap.complete_request', request_id=req.id) }}">
-                            <button type="submit" class="btn btn-primary btn-sm">Mark as Complete</button>
-                        </form>
+                        <!-- All action buttons stacked consistently -->
+                        <div class="d-flex flex-column align-items-stretch gap-1" style="min-width:160px;">
+                            <span class="badge bg-success text-center py-2">Accepted</span>
+                            <form method="POST" action="{{ url_for('swap.complete_request', request_id=req.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">Mark as Complete</button>
+                            </form>
+                            <a href="{{ url_for('messaging.chat', swap_id=req.id) }}"
+                               class="btn btn-outline-primary btn-sm w-100 position-relative">
+                                💬 Message
+                                {% if unread_msg_map.get(req.id) %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ unread_msg_map[req.id] }}
+                                </span>
+                                {% endif %}
+                            </a>
+                            <a href="{{ url_for('scheduling.view_session', swap_id=req.id) }}"
+                               class="btn btn-outline-info btn-sm w-100">
+                                {% if session_map.get(req.id) == 'Confirmed' %}
+                                    ✅ Session Confirmed
+                                {% elif session_map.get(req.id) == 'Proposed' %}
+                                    ⏳ Session Pending
+                                {% else %}
+                                    📅 Schedule
+                                {% endif %}
+                            </a>
+                        </div>
                     {% elif req.status == 'Rejected' %}
                         <span class="badge bg-danger mb-2 d-block">Rejected</span>
                     {% elif req.status == 'Completed' %}
@@ -77,6 +102,16 @@
                         {% else %}
                             <span class="text-muted small">Feedback given ✓</span>
                         {% endif %}
+                        <!-- Message button for completed swaps too -->
+                        <a href="{{ url_for('messaging.chat', swap_id=req.id) }}"
+                           class="btn btn-outline-secondary btn-sm mt-1 position-relative">
+                            💬 Message
+                            {% if unread_msg_map.get(req.id) %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ unread_msg_map[req.id] }}
+                            </span>
+                            {% endif %}
+                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -92,15 +127,15 @@
     <nav class="mb-5">
         <ul class="pagination justify-content-center">
             <li class="page-item {% if not received_pagination.has_prev %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('swap.swap_requests', page=received_pagination.prev_num, status=selected_status) }}">«</a>
+                <a class="page-link" href="{{ url_for('swap.swap_requests', received_page=received_pagination.prev_num, status=selected_status) }}">«</a>
             </li>
             {% for p in received_pagination.iter_pages() %}
                 <li class="page-item {% if p == received_pagination.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('swap.swap_requests', page=p, status=selected_status) }}">{{ p }}</a>
+                    <a class="page-link" href="{{ url_for('swap.swap_requests', received_page=p, status=selected_status) }}">{{ p }}</a>
                 </li>
             {% endfor %}
             <li class="page-item {% if not received_pagination.has_next %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('swap.swap_requests', page=received_pagination.next_num, status=selected_status) }}">»</a>
+                <a class="page-link" href="{{ url_for('swap.swap_requests', received_page=received_pagination.next_num, status=selected_status) }}">»</a>
             </li>
         </ul>
     </nav>
@@ -140,10 +175,32 @@
                     {% if req.status == 'Pending' %}
                         <span class="badge bg-warning text-dark">Pending</span>
                     {% elif req.status == 'Accepted' %}
-                        <span class="badge bg-success">Accepted</span>
-                        <form method="POST" action="{{ url_for('swap.complete_request', request_id=req.id) }}" class="mt-2">
-                            <button type="submit" class="btn btn-primary btn-sm">Mark as Complete</button>
-                        </form>
+                        <div class="d-flex flex-column align-items-stretch gap-1" style="min-width:160px;">
+                            <span class="badge bg-success text-center py-2">Accepted</span>
+                            <form method="POST" action="{{ url_for('swap.complete_request', request_id=req.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-primary btn-sm w-100">Mark as Complete</button>
+                            </form>
+                            <a href="{{ url_for('messaging.chat', swap_id=req.id) }}"
+                               class="btn btn-outline-primary btn-sm w-100 position-relative">
+                                💬 Message
+                                {% if unread_msg_map.get(req.id) %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ unread_msg_map[req.id] }}
+                                </span>
+                                {% endif %}
+                            </a>
+                            <a href="{{ url_for('scheduling.view_session', swap_id=req.id) }}"
+                               class="btn btn-outline-info btn-sm w-100">
+                                {% if session_map.get(req.id) == 'Confirmed' %}
+                                    ✅ Session Confirmed
+                                {% elif session_map.get(req.id) == 'Proposed' %}
+                                    ⏳ Session Pending
+                                {% else %}
+                                    📅 Schedule
+                                {% endif %}
+                            </a>
+                        </div>
                     {% elif req.status == 'Rejected' %}
                         <span class="badge bg-danger">Rejected</span>
                     {% elif req.status == 'Completed' %}
@@ -159,6 +216,15 @@
                         {% else %}
                             <span class="text-muted small">Feedback given ✓</span>
                         {% endif %}
+                        <a href="{{ url_for('messaging.chat', swap_id=req.id) }}"
+                           class="btn btn-outline-secondary btn-sm mt-1 position-relative">
+                            💬 Message
+                            {% if unread_msg_map.get(req.id) %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                {{ unread_msg_map[req.id] }}
+                            </span>
+                            {% endif %}
+                        </a>
                     {% endif %}
                 </div>
             </div>
@@ -174,15 +240,15 @@
     <nav>
         <ul class="pagination justify-content-center">
             <li class="page-item {% if not sent_pagination.has_prev %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('swap.swap_requests', page=sent_pagination.prev_num, status=selected_status) }}">«</a>
+                <a class="page-link" href="{{ url_for('swap.swap_requests', sent_page=sent_pagination.prev_num, status=selected_status) }}">«</a>
             </li>
             {% for p in sent_pagination.iter_pages() %}
                 <li class="page-item {% if p == sent_pagination.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('swap.swap_requests', page=p, status=selected_status) }}">{{ p }}</a>
+                    <a class="page-link" href="{{ url_for('swap.swap_requests', sent_page=p, status=selected_status) }}">{{ p }}</a>
                 </li>
             {% endfor %}
             <li class="page-item {% if not sent_pagination.has_next %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('swap.swap_requests', page=sent_pagination.next_num, status=selected_status) }}">»</a>
+                <a class="page-link" href="{{ url_for('swap.swap_requests', sent_page=sent_pagination.next_num, status=selected_status) }}">»</a>
             </li>
         </ul>
     </nav>

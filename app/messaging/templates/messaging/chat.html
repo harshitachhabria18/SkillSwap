@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4" style="max-width: 760px;">
+
+    <!-- Chat Header -->
+    <div class="chat-header d-flex align-items-center gap-3 mb-3">
+        <a href="{{ url_for('swap.swap_requests') }}" class="btn btn-sm btn-outline-secondary">← Back</a>
+        <div>
+            <h5 class="mb-0">
+                💬 Chat with {{ other.name }}
+            </h5>
+            <small class="text-muted">
+                Swap: {{ swap.offered_skill.name }} ↔ {{ swap.wanted_skill.name }}
+                &nbsp;·&nbsp;
+                <span class="badge
+                    {% if swap.status == 'Accepted' %}bg-success
+                    {% elif swap.status == 'Completed' %}bg-secondary
+                    {% endif %}">
+                    {{ swap.status }}
+                </span>
+            </small>
+        </div>
+    </div>
+
+    <!-- ── Message list ── -->
+    <div id="chat-box" class="chat-box mb-3">
+
+        {% if not messages %}
+        <p class="text-center text-muted mt-5">
+            No messages yet. Say hello! 👋
+        </p>
+        {% endif %}
+
+        {% for msg in messages %}
+        <div class="chat-bubble-wrap
+                    {% if msg.sender_id == current_user.id %}mine{% else %}theirs{% endif %}"
+             id="msg-{{ msg.id }}">
+            <div class="chat-bubble">
+                {{ msg.body }}
+            </div>
+            <div class="chat-meta">
+                {% if msg.sender_id != current_user.id %}
+                <strong>{{ msg.sender.name }}</strong> ·
+                {% endif %}
+                {{ msg.created_at.strftime('%I:%M %p') if msg.created_at else '' }}
+            </div>
+        </div>
+        {% endfor %}
+
+    </div><!-- /#chat-box -->
+
+    <!-- ── Send form ── -->
+    <form method="POST"
+          action="{{ url_for('messaging.send_message', swap_id=swap.id) }}"
+          id="send-form"
+          class="chat-send-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="d-flex gap-2 align-items-end">
+            <div class="flex-grow-1">
+                <textarea
+                    id="msg-body"
+                    name="body"
+                    class="form-control chat-input"
+                    rows="2"
+                    maxlength="1000"
+                    placeholder="Type a message…"
+                    required
+                    autofocus></textarea>
+                <div class="text-end">
+                    <small id="char-counter" class="text-muted">0 / 1000</small>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success chat-send-btn">
+                Send ➤
+            </button>
+        </div>
+    </form>
+
+</div>
+
+<!-- ── JS: scroll to bottom + character counter + 4-second polling ── -->
+<script>
+(function () {
+    'use strict';
+
+    const chatBox     = document.getElementById('chat-box');
+    const msgBody     = document.getElementById('msg-body');
+    const charCounter = document.getElementById('char-counter');
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    function scrollBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Track the latest message timestamp we have seen (for polling)
+    // Use the last server-rendered message, or epoch if chat is empty.
+    let lastMsgId  = {{ messages[-1].id if messages else 0 }};
+    let sinceTs    = "{{ messages[-1].created_at.isoformat() if messages else '1970-01-01T00:00:00' }}";
+
+    // ── Character counter ─────────────────────────────────────────────────────
+    msgBody.addEventListener('input', function () {
+        const used = msgBody.value.length;
+        charCounter.textContent = used + ' / 1000';
+        charCounter.style.color = used > 900 ? '#c0392b' : '';
+    });
+
+    // Submit on Ctrl+Enter / Cmd+Enter for convenience
+    msgBody.addEventListener('keydown', function (e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            document.getElementById('send-form').submit();
+        }
+    });
+
+    // ── Build a bubble element from JSON data ─────────────────────────────────
+    function makeBubble(msg) {
+        const wrap = document.createElement('div');
+        wrap.className = 'chat-bubble-wrap theirs';
+        wrap.id        = 'msg-' + msg.id;
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        // body is already server-escaped; set as text to prevent XSS
+        bubble.textContent = msg.body;
+
+        const meta = document.createElement('div');
+        meta.className = 'chat-meta';
+        // Format the ISO timestamp into HH:MM AM/PM
+        try {
+            const d   = new Date(msg.created_at);
+            const hrs = d.getHours() % 12 || 12;
+            const min = String(d.getMinutes()).padStart(2, '0');
+            const ap  = d.getHours() >= 12 ? 'PM' : 'AM';
+            meta.innerHTML = '<strong>' + msg.sender_name + '</strong> · ' + hrs + ':' + min + ' ' + ap;
+        } catch (_) {
+            meta.textContent = msg.sender_name;
+        }
+
+        wrap.appendChild(bubble);
+        wrap.appendChild(meta);
+        return wrap;
+    }
+
+    // ── Polling — runs every 4 seconds ────────────────────────────────────────
+    function poll() {
+        const url = "{{ url_for('messaging.poll', swap_id=swap.id) }}?since=" +
+                    encodeURIComponent(sinceTs);
+
+        fetch(url, { credentials: 'same-origin' })
+            .then(function (r) {
+                if (!r.ok) return null;
+                return r.json();
+            })
+            .then(function (data) {
+                if (!data || !data.messages.length) return;
+
+                data.messages.forEach(function (msg) {
+                    // Avoid duplicates (defensive check)
+                    if (document.getElementById('msg-' + msg.id)) return;
+
+                    chatBox.appendChild(makeBubble(msg));
+                    sinceTs   = msg.created_at;   // advance the since cursor
+                    lastMsgId = msg.id;
+                });
+
+                // Remove "no messages" placeholder if it existed
+                const placeholder = chatBox.querySelector('.text-muted.mt-5');
+                if (placeholder) placeholder.remove();
+
+                scrollBottom();
+            })
+            .catch(function () { /* network blip — just wait for next tick */ });
+    }
+
+    // ── Init ──────────────────────────────────────────────────────────────────
+    scrollBottom();
+    setInterval(poll, 4000);   // poll every 4 seconds
+
+})();
+</script>
+
+{% endblock %}

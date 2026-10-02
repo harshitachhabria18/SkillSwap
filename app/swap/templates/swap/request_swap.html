@@ -22,6 +22,7 @@
 
         <!-- Swap Request Form -->
         <form method="POST" action="{{ url_for('swap.request_swap', user_id=receiver.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <!-- My offered skills dropdown -->
             <div class="mb-3">
