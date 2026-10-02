@@ -6,7 +6,6 @@ from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask import redirect, url_for
 from flask_wtf.csrf import CSRFProtect
-from flask_mail import Mail
 from werkzeug.middleware.proxy_fix import ProxyFix
 import cloudinary
 from zoneinfo import ZoneInfo
@@ -17,7 +16,6 @@ load_dotenv()
 
 db = SQLAlchemy()
 csrf = CSRFProtect()
-mail = Mail()
 
 # manage user sessions
 login_manager = LoginManager()
