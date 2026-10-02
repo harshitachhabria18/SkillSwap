@@ -45,6 +45,10 @@ def mark_read(notif_id):
     notif.is_read = True
     db.session.commit()
 
+    from flask import request, jsonify
+    if request.args.get('ajax') == '1':
+        return jsonify({'status': 'ok'})
+
     # Redirect to the relevant page (e.g. swap requests) instead of staying on the list
     return redirect(notif.link or url_for('notif.list_notifications'))
 

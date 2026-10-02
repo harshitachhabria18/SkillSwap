@@ -120,6 +120,22 @@
         const bodyText = msgBody.value.trim();
         if (!bodyText) return;
 
+        // Optimistic UI render
+        const tempMsg = {
+            body: bodyText,
+            is_mine: true,
+            created_at: new Date().toISOString()
+        };
+        chatBox.appendChild(makeBubble(tempMsg));
+        scrollBottom();
+        
+        const placeholder = chatBox.querySelector('.text-muted.mt-5');
+        if (placeholder) placeholder.remove();
+
+        msgBody.value = '';
+        charCounter.textContent = '0 / 1000';
+        msgBody.focus();
+
         const formData = new FormData(sendForm);
         fetch(sendForm.action, {
             method: 'POST',
@@ -127,10 +143,7 @@
             headers: { 'Accept': 'application/json' }
         }).then(function(res) {
             if (res.ok) {
-                msgBody.value = '';
-                charCounter.textContent = '0 / 1000';
-                msgBody.focus();
-                poll(); // Immediately fetch the new message and scroll down
+                poll(); // Fetch any other new messages
             }
         });
     });
@@ -138,8 +151,8 @@
     // ── Build a bubble element from JSON data ─────────────────────────────────
     function makeBubble(msg) {
         const wrap = document.createElement('div');
-        wrap.className = 'chat-bubble-wrap theirs';
-        wrap.id        = 'msg-' + msg.id;
+        wrap.className = 'chat-bubble-wrap ' + (msg.is_mine ? 'mine' : 'theirs');
+        if (msg.id) wrap.id = 'msg-' + msg.id;
 
         const bubble = document.createElement('div');
         bubble.className = 'chat-bubble';
@@ -154,9 +167,15 @@
             const hrs = d.getHours() % 12 || 12;
             const min = String(d.getMinutes()).padStart(2, '0');
             const ap  = d.getHours() >= 12 ? 'PM' : 'AM';
-            meta.innerHTML = '<strong>' + msg.sender_name + '</strong> · ' + hrs + ':' + min + ' ' + ap;
+            const timeStr = hrs + ':' + min + ' ' + ap;
+            
+            if (msg.is_mine) {
+                meta.textContent = timeStr;
+            } else {
+                meta.innerHTML = '<strong>' + msg.sender_name + '</strong> · ' + timeStr;
+            }
         } catch (_) {
-            meta.textContent = msg.sender_name;
+            meta.textContent = msg.is_mine ? '' : msg.sender_name;
         }
 
         wrap.appendChild(bubble);

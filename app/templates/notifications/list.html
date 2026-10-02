@@ -34,7 +34,7 @@
                 <div class="d-flex justify-content-between align-items-start gap-3">
 
                     <!-- Icon + Message -->
-                        <a href="{{ url_for('notif.mark_read', notif_id=notif.id) if not notif.is_read else (notif.link or '#') }}" class="text-decoration-none text-dark d-flex align-items-start flex-grow-1 gap-3">
+                        <a href="{{ url_for('notif.mark_read', notif_id=notif.id) if not notif.is_read else (notif.link or '#') }}" data-target="{{ notif.link or '#' }}" class="text-decoration-none text-dark d-flex align-items-start flex-grow-1 gap-3">
                             <span class="notif-icon">
                                 {% if notif.type == 'swap_received' %}📩
                                 {% elif notif.type == 'swap_accepted' %}✅
@@ -60,13 +60,12 @@
                                     {{ (notif.created_at | to_ist).strftime('%d %b %Y, %I:%M %p') if notif.created_at else '' }}
                                 </small>
                             </div>
-                            </div>
                         </a>
 
                     <!-- Mark as read button — only for unread ones -->
                     <div class="flex-shrink-0">
                         {% if not notif.is_read %}
-                        <a href="{{ url_for('notif.mark_read', notif_id=notif.id) }}" class="btn btn-outline-success btn-sm">
+                        <a href="#" onclick="markAsRead(event, {{ notif.id }}, this)" class="btn btn-outline-success btn-sm">
                             Mark read →
                         </a>
                         {% else %}
@@ -109,4 +108,29 @@
     {% endif %}
 
 </div>
+
+<!-- AJAX Mark As Read Script -->
+<script>
+function markAsRead(e, notifId, btnElement) {
+    e.preventDefault();
+    fetch('/notifications/' + notifId + '/read?ajax=1', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
+    }).then(res => {
+        if (res.ok) {
+            const container = btnElement.parentElement;
+            container.innerHTML = '<span class="text-muted small">Read ✓</span>';
+            const listItem = container.closest('.list-group-item');
+            listItem.classList.remove('notif-unread');
+            const msgP = listItem.querySelector('.notif-message');
+            if (msgP) msgP.classList.remove('fw-semibold');
+            
+            const mainLink = listItem.querySelector('a.text-dark');
+            if (mainLink) {
+                mainLink.href = mainLink.getAttribute('data-target');
+            }
+        }
+    });
+}
+</script>
 {% endblock %}
