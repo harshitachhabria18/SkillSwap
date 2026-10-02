@@ -120,6 +120,8 @@
         const bodyText = msgBody.value.trim();
         if (!bodyText) return;
 
+        const formData = new FormData(sendForm);
+
         // Optimistic UI render
         const tempMsg = {
             body: bodyText,
@@ -136,11 +138,10 @@
         charCounter.textContent = '0 / 1000';
         msgBody.focus();
 
-        const formData = new FormData(sendForm);
         fetch(sendForm.action, {
             method: 'POST',
             body: formData,
-            headers: { 'Accept': 'application/json' }
+            headers: { 'Accept': 'application/json', 'X-CSRFToken': formData.get('csrf_token') }
         }).then(function(res) {
             if (res.ok) {
                 poll(); // Fetch any other new messages
