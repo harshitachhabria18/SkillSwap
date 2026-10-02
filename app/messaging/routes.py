@@ -147,6 +147,8 @@ def send_message(swap_id):
         ref_id     = swap_id,
     )
 
+    if request.headers.get('Accept') == 'application/json':
+        return jsonify({'status': 'ok'})
     return redirect(url_for('messaging.chat', swap_id=swap_id))
 
 
@@ -197,7 +199,7 @@ def poll(swap_id):
                 'sender_id':   m.sender_id,
                 'sender_name': m.sender.name,
                 'body':        m.body,          # already escaped on save
-                'created_at':  m.created_at.isoformat() if m.created_at else '',
+                'created_at':  m.created_at.isoformat() + 'Z' if m.created_at else '',
                 'is_mine':     False,           # poll only returns OTHER person's messages
             }
             for m in new_msgs

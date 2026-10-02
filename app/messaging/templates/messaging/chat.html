@@ -43,7 +43,7 @@
                 {% if msg.sender_id != current_user.id %}
                 <strong>{{ msg.sender.name }}</strong> ·
                 {% endif %}
-                {{ msg.created_at.strftime('%I:%M %p') if msg.created_at else '' }}
+                {{ (msg.created_at | to_ist).strftime('%I:%M %p') if msg.created_at else '' }}
             </div>
         </div>
         {% endfor %}
@@ -97,7 +97,7 @@
     // Track the latest message timestamp we have seen (for polling)
     // Use the last server-rendered message, or epoch if chat is empty.
     let lastMsgId  = {{ messages[-1].id if messages else 0 }};
-    let sinceTs    = "{{ messages[-1].created_at.isoformat() if messages else '1970-01-01T00:00:00' }}";
+    let sinceTs    = "{{ messages[-1].created_at.isoformat() + 'Z' if messages else '1970-01-01T00:00:00Z' }}";
 
     // ── Character counter ─────────────────────────────────────────────────────
     msgBody.addEventListener('input', function () {
@@ -109,8 +109,30 @@
     // Submit on Ctrl+Enter / Cmd+Enter for convenience
     msgBody.addEventListener('keydown', function (e) {
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-            document.getElementById('send-form').submit();
+            document.getElementById('send-form').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
         }
+    });
+
+    // ── AJAX Form Submit ──────────────────────────────────────────────────────
+    const sendForm = document.getElementById('send-form');
+    sendForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const bodyText = msgBody.value.trim();
+        if (!bodyText) return;
+
+        const formData = new FormData(sendForm);
+        fetch(sendForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'Accept': 'application/json' }
+        }).then(function(res) {
+            if (res.ok) {
+                msgBody.value = '';
+                charCounter.textContent = '0 / 1000';
+                msgBody.focus();
+                poll(); // Immediately fetch the new message and scroll down
+            }
+        });
     });
 
     // ── Build a bubble element from JSON data ─────────────────────────────────

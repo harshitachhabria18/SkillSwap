@@ -34,44 +34,41 @@
                 <div class="d-flex justify-content-between align-items-start gap-3">
 
                     <!-- Icon + Message -->
-                    <div class="d-flex align-items-start gap-3 flex-grow-1">
-                        <span class="notif-icon">
-                            {% if notif.type == 'swap_received' %}📩
-                            {% elif notif.type == 'swap_accepted' %}✅
-                            {% elif notif.type == 'swap_rejected' %}❌
-                            {% elif notif.type == 'swap_completed' %}🎉
-                            {% elif notif.type == 'new_message' %}💬
-                            {% elif notif.type == 'session_proposed' %}📅
-                            {% elif notif.type == 'session_confirmed' %}✅
-                            {% elif notif.type == 'session_declined' %}❌
-                            {% elif notif.type == 'session_cancelled' %}🚫
-                            {% else %}🔔
-                            {% endif %}
-                        </span>
-                        <div>
-                            <p class="mb-1 notif-message
-                                      {% if not notif.is_read %}fw-semibold{% endif %}">
-                                {{ notif.message }}
-                                {% if notif.count > 1 %}
-                                <span class="badge bg-secondary ms-1">×{{ notif.count }}</span>
+                        <a href="{{ url_for('notif.mark_read', notif_id=notif.id) if not notif.is_read else (notif.link or '#') }}" class="text-decoration-none text-dark d-flex align-items-start flex-grow-1 gap-3">
+                            <span class="notif-icon">
+                                {% if notif.type == 'swap_received' %}📩
+                                {% elif notif.type == 'swap_accepted' %}✅
+                                {% elif notif.type == 'swap_rejected' %}❌
+                                {% elif notif.type == 'swap_completed' %}🎉
+                                {% elif notif.type == 'new_message' %}💬
+                                {% elif notif.type == 'session_proposed' %}📅
+                                {% elif notif.type == 'session_confirmed' %}✅
+                                {% elif notif.type == 'session_declined' %}❌
+                                {% elif notif.type == 'session_cancelled' %}🚫
+                                {% else %}🔔
                                 {% endif %}
-                            </p>
-                            <small class="text-muted">
-                                {{ notif.created_at.strftime('%d %b %Y, %I:%M %p') if notif.created_at else '' }}
-                            </small>
-                        </div>
-                    </div>
+                            </span>
+                            <div>
+                                <p class="mb-1 notif-message
+                                          {% if not notif.is_read %}fw-semibold{% endif %}">
+                                    {{ notif.message }}
+                                    {% if notif.count > 1 %}
+                                    <span class="badge bg-secondary ms-1">×{{ notif.count }}</span>
+                                    {% endif %}
+                                </p>
+                                <small class="text-muted">
+                                    {{ (notif.created_at | to_ist).strftime('%d %b %Y, %I:%M %p') if notif.created_at else '' }}
+                                </small>
+                            </div>
+                            </div>
+                        </a>
 
                     <!-- Mark as read button — only for unread ones -->
                     <div class="flex-shrink-0">
                         {% if not notif.is_read %}
-                        <form method="POST"
-                              action="{{ url_for('notif.mark_read', notif_id=notif.id) }}">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="btn btn-outline-success btn-sm">
-                                Mark read →
-                            </button>
-                        </form>
+                        <a href="{{ url_for('notif.mark_read', notif_id=notif.id) }}" class="btn btn-outline-success btn-sm">
+                            Mark read →
+                        </a>
                         {% else %}
                         <span class="text-muted small">Read ✓</span>
                         {% endif %}

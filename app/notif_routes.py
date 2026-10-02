@@ -27,7 +27,7 @@ def list_notifications():
     )
 
 
-@notif_bp.route('/<int:notif_id>/read', methods=['POST'])
+@notif_bp.route('/<int:notif_id>/read', methods=['GET', 'POST'])
 @login_required
 def mark_read(notif_id):
     """

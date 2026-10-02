@@ -9,6 +9,8 @@ from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
 from werkzeug.middleware.proxy_fix import ProxyFix
 import cloudinary
+from zoneinfo import ZoneInfo
+from datetime import timezone
 
 #load environment variables from .env
 load_dotenv()
@@ -134,6 +136,15 @@ def create_app():
     @app.route('/')
     def index():
         return redirect(url_for('swap.home'))
+
+    # Register global Jinja filter for IST time conversion
+    @app.template_filter('to_ist')
+    def to_ist(dt):
+        if not dt:
+            return ''
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.astimezone(ZoneInfo('Asia/Kolkata'))
 
     # ── CLI: flask make-admin <email> ─────────────────────────────────────────
     # This is the ONLY way to promote a user to admin.
