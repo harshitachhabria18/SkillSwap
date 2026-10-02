@@ -186,13 +186,19 @@ def forgot_password():
             from flask_mail import Message
             reset_url = url_for('auth.reset_password', token=token, _external=True)
             try:
-                msg = Message(
-                    subject='SkillSwap — Reset your password',
-                    recipients=[email],
-                    html=render_template('reset_email.html',
-                                         name=user.name, reset_url=reset_url)
-                )
-                mail.send(msg)
+                import socket
+                old_timeout = socket.getdefaulttimeout()
+                socket.setdefaulttimeout(10.0)  # 10 second timeout
+                try:
+                    msg = Message(
+                        subject='SkillSwap — Reset your password',
+                        recipients=[email],
+                        html=render_template('reset_email.html',
+                                             name=user.name, reset_url=reset_url)
+                    )
+                    mail.send(msg)
+                finally:
+                    socket.setdefaulttimeout(old_timeout)
             except Exception as e:
                 current_app.logger.error(f'[MAIL] Failed to send reset email: {e}')
                 flash('Could not send email. Please check your mail settings.', 'danger')
