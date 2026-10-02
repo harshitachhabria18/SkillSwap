@@ -181,26 +181,39 @@ def forgot_password():
             # Generate a signed, time-limited token
             token = _get_serializer().dumps(email, salt='password-reset')
 
-            # Send the reset email
-            from app import mail
-            from flask_mail import Message
+            # Send the reset email via Brevo API
+            import requests
             reset_url = url_for('auth.reset_password', token=token, _external=True)
+            html_content = render_template('reset_email.html', name=user.name, reset_url=reset_url)
+            
+            brevo_api_key = current_app.config.get('BREVO_API_KEY')
+            sender_email = current_app.config.get('MAIL_SENDER', 'noreply@skillswap.com')
+            
+            if not brevo_api_key:
+                current_app.logger.error('[MAIL] BREVO_API_KEY not set.')
+                flash('Email sending is currently disabled.', 'danger')
+                return render_template('forgot_password.html')
+                
+            url = "https://api.brevo.com/v3/smtp/email"
+            headers = {
+                "accept": "application/json",
+                "api-key": brevo_api_key,
+                "content-type": "application/json"
+            }
+            payload = {
+                "sender": {"email": sender_email, "name": "SkillSwap"},
+                "to": [{"email": email, "name": user.name}],
+                "subject": "SkillSwap — Reset your password",
+                "htmlContent": html_content
+            }
+            
             try:
-                import socket
-                old_timeout = socket.getdefaulttimeout()
-                socket.setdefaulttimeout(10.0)  # 10 second timeout
-                try:
-                    msg = Message(
-                        subject='SkillSwap — Reset your password',
-                        recipients=[email],
-                        html=render_template('reset_email.html',
-                                             name=user.name, reset_url=reset_url)
-                    )
-                    mail.send(msg)
-                finally:
-                    socket.setdefaulttimeout(old_timeout)
+                response = requests.post(url, json=payload, headers=headers, timeout=10)
+                response.raise_for_status()
             except Exception as e:
-                current_app.logger.error(f'[MAIL] Failed to send reset email: {e}')
+                current_app.logger.error(f'[MAIL] Failed to send reset email via Brevo: {e}')
+                if 'response' in locals() and hasattr(response, 'text'):
+                    current_app.logger.error(f'[MAIL] Brevo Response: {response.text}')
                 flash('Could not send email. Please check your mail settings.', 'danger')
                 return render_template('forgot_password.html')
 

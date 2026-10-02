@@ -64,17 +64,9 @@ def create_app():
 
     migrate.init_app(app, db)
 
-    # Flask-Mail configuration (used for password reset emails)
-    app.config['MAIL_SERVER']   = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-    app.config['MAIL_PORT']     = int(os.environ.get('MAIL_PORT', 465))
-    app.config['MAIL_USE_TLS']  = False
-    app.config['MAIL_USE_SSL']  = True
-    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', 'noreply@skillswap.com')
-    # Prevent Render from hanging on SMTP connect timeout
-    app.config['MAIL_TIMEOUT']  = 5
-    mail.init_app(app)
+    # Brevo API configuration
+    app.config['BREVO_API_KEY'] = os.environ.get('BREVO_API_KEY')
+    app.config['MAIL_SENDER'] = os.environ.get('MAIL_SENDER', 'noreply@skillswap.com')
 
     # Google OAuth (Authlib)
     from app.auth.oauth import init_oauth
