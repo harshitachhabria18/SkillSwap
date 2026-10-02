@@ -10,3 +10,5 @@ backup.sql
 
 backup.sql
 *.mp4
+
+test_env/
