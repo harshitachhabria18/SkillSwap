@@ -7,6 +7,7 @@ from flask_migrate import Migrate
 from flask import redirect, url_for
 from flask_wtf.csrf import CSRFProtect
 from flask_mail import Mail
+from werkzeug.middleware.proxy_fix import ProxyFix
 import cloudinary
 
 #load environment variables from .env
@@ -159,5 +160,10 @@ def create_app():
         user.is_admin = True
         db.session.commit()
         click.echo(f'✅ {email} is now an admin.')
+
+    # Apply ProxyFix so url_for generates https:// behind Render's load balancer
+    # x_proto=1: trust X-Forwarded-Proto header (sets https scheme)
+    # x_host=1:  trust X-Forwarded-Host header (sets correct hostname)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
     return app
