@@ -244,7 +244,7 @@ The application uses a relational database design to manage users, skills, swap 
 ![Swap Requests](screenshots/swap_requests.png)
 
 ### Messages
-![Swap Requests](screenshots/messages.png)
+![Messages](screenshots/messages.png)
 
 ## 🎥 Demo Video
 https://github.com/user-attachments/assets/d3045fca-2739-4e2c-ad48-cddc66911e47
