@@ -247,7 +247,7 @@ The application uses a relational database design to manage users, skills, swap 
 ![Messages](screenshots/messages.png)
 
 ## 🎥 Demo Video
-https://github.com/user-attachments/assets/d3045fca-2739-4e2c-ad48-cddc66911e47
+https://github.com/harshitachhabria18/SkillSwap/issues/2#issue-4535278053
 
 ---
 
