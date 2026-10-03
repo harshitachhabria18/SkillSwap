@@ -17,7 +17,7 @@
 ---
 
 ## 📖 About the Project
-SkillSwap is a full-stack peer-to-peer skill exchange platform developed using Flask (Python). The application enables users to connect with others by offering skills they possess and requesting skills they want to learn. Users can create profiles, manage skill listings, browse potential matches, and send structured swap requests for collaborative learning.
+SkillSwap is a full-stack peer-to-peer skill exchange platform developed using Flask (Python). The application enables users to connect with others by offering skills they possess and requesting skills they want to learn. Users can create profiles, manage skill listings, browse potential matches, and send structured swap requests for collaborative learning along with messaging, session scheduling, notifications, Google login and an admin panel.
 
 The platform supports user authentication, profile management, skill tagging, structured swap requests, search and filtering, and a feedback/rating system, with PostgreSQL used for database management, Cloudinary for profile photo storage, and Bootstrap for a responsive user interface.
 
