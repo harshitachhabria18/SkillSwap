@@ -227,7 +227,7 @@ This is the only way to grant admin access — there is no web route for promoti
 ---
 
 ## 🗄️ Database Schema
-The application uses a relational database design to manage users, skills, swap requests, and feedback efficiently.
+The application uses a relational database design to manage users, skills, swap requests, notifications, messages, session scheduling, and feedback efficiently.
 
 ![ER Diagram](screenshots/er_diagram_updated.png)
 
